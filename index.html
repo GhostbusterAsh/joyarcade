@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>JoyArcade — The 90-Second Game Lab</title>
+  <meta name="description" content="A curated indie game lab: fast rounds, psychological twists, and replay-worthy micro challenges." />
+  <link rel="stylesheet" href="joyarcade.css" />
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+
+  <header class="topbar container">
+    <div class="brand">
+      <div class="logo" aria-hidden="true">JA</div>
+      <div>
+        <p class="brand-title">JoyArcade</p>
+        <p class="brand-sub">Small games. Big dopamine.</p>
+      </div>
+    </div>
+
+    <nav class="nav" aria-label="Primary">
+      <a href="#featured">Featured</a>
+      <a href="#collections">Collections</a>
+      <a href="#games">All Games</a>
+      <button id="take-quiz" class="btn btn-primary">Find My Game</button>
+    </nav>
+  </header>
+
+  <main id="main" class="container">
+    <section class="hero" aria-labelledby="hero-title">
+      <div>
+        <p class="eyebrow">CURATED GAME EXPERIENCE</p>
+        <h1 id="hero-title">What kind of player are you today?</h1>
+        <p class="hero-copy">Pick your mood, get a tailored challenge, and unlock rewards in under 90 seconds.</p>
+
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="#featured">Start in 10 seconds</a>
+          <a class="btn btn-ghost" href="#games">Browse all games</a>
+        </div>
+
+        <ul class="trust-row" aria-label="Platform highlights">
+          <li>⚡ Instant play</li>
+          <li>🧠 Strategy + reflex mix</li>
+          <li>🏆 Achievements + coin unlocks</li>
+        </ul>
+      </div>
+
+      <aside class="hero-panel" aria-label="Live activity preview">
+        <h2>Tonight’s pulse</h2>
+        <p><strong>Most played:</strong> Reaction Time Test</p>
+        <p><strong>Hidden gem:</strong> Doubt</p>
+        <p><strong>Challenge:</strong> Beat 230ms reaction</p>
+        <button id="randomGameBtn" class="btn btn-secondary">Random adrenaline hit</button>
+      </aside>
+    </section>
+
+    <section id="featured" class="section" aria-labelledby="featured-title">
+      <div class="section-head">
+        <h2 id="featured-title">Featured Paths</h2>
+        <p>Not a list. A journey.</p>
+      </div>
+      <div class="path-grid">
+        <article class="path-card">
+          <p class="path-tag">BEGINNER LOOP</p>
+          <h3>Quick Wins</h3>
+          <p>Start with fast confidence boosts and easy rewards.</p>
+          <a href="reactiontest/index.html">Play first challenge →</a>
+        </article>
+        <article class="path-card">
+          <p class="path-tag">BRAIN MODE</p>
+          <h3>Mind Games</h3>
+          <p>Memory, bluffing, and pattern pressure.</p>
+          <a href="memoryflip/index.html">Enter mind mode →</a>
+        </article>
+        <article class="path-card path-card-accent">
+          <p class="path-tag">STORY SIGNAL</p>
+          <h3>Psychological Experience</h3>
+          <p>Short narrative tension with a mysterious tone.</p>
+          <a href="chosen9/index.html">Play Doubt →</a>
+        </article>
+      </div>
+    </section>
+
+    <section id="collections" class="section" aria-labelledby="collections-title">
+      <div class="section-head">
+        <h2 id="collections-title">Mood Collections</h2>
+        <p>Choose by emotion, not genre.</p>
+      </div>
+      <div class="chip-row">
+        <button class="chip" data-filter="reflex">Need speed</button>
+        <button class="chip" data-filter="strategy">Think deeply</button>
+        <button class="chip" data-filter="memory">Train memory</button>
+        <button class="chip" data-filter="story">Feel unsettled</button>
+      </div>
+    </section>
+
+    <section id="games" class="section" aria-labelledby="games-title">
+      <div class="section-head">
+        <h2 id="games-title">Game Library</h2>
+        <p id="result-count" aria-live="polite"></p>
+      </div>
+
+      <label class="search-wrap" for="game-search">
+        <span>Search by mood, title, or style</span>
+        <input id="game-search" type="search" placeholder="e.g. strategy, memory, fast" />
+      </label>
+
+      <div class="game-grid" id="game-grid">
+        <article class="game-card" data-tags="reflex fast score" data-title="Odd Eve">
+          <h3>Odd Eve</h3>
+          <p>Quick odd-even cricket rounds for instant competition.</p>
+          <a class="btn btn-secondary" href="OddEveOffline/index.html">Play now</a>
+        </article>
+        <article class="game-card" data-tags="strategy social" data-title="Chopsticks">
+          <h3>Chopsticks</h3>
+          <p>Multiplayer hand strategy with playful mind games.</p>
+          <a class="btn btn-secondary" href="Chopsticks/index.html">Play now</a>
+        </article>
+        <article class="game-card" data-tags="strategy challenge" data-title="Gattabara">
+          <h3>Gattabara</h3>
+          <p>Fast classroom-inspired tactical duels.</p>
+          <a class="btn btn-secondary" href="GTB V2.0/index.html">Play now</a>
+        </article>
+        <article class="game-card" data-tags="reflex challenge" data-title="Pen Fight">
+          <h3>Pen Fight</h3>
+          <p>Short rounds with high replay and pressure.</p>
+          <a class="btn btn-secondary" href="penfight/index.html">Play now</a>
+        </article>
+        <article class="game-card" data-tags="memory logic" data-title="Memory Flip">
+          <h3>Memory Flip</h3>
+          <p>Football-themed memory challenge with clean pacing.</p>
+          <a class="btn btn-secondary" href="memoryflip/index.html">Play now</a>
+        </article>
+        <article class="game-card" data-tags="reflex score fast" data-title="Reaction Time Test">
+          <h3>Reaction Time Test</h3>
+          <p>Test your reaction and chase leaderboard-worthy times.</p>
+          <a class="btn btn-secondary" href="reactiontest/index.html">Play now</a>
+        </article>
+        <article class="game-card" data-tags="story mystery short" data-title="Doubt">
+          <h3>Doubt</h3>
+          <p>A short psychological narrative about truth and memory.</p>
+          <a class="btn btn-secondary" href="chosen9/index.html">Play now</a>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <footer class="container footer">
+    <p>Built for curiosity loops: explore → play → unlock → return.</p>
+  </footer>
+
+  <script src="joyarcade.js"></script>
+</body>
+</html>

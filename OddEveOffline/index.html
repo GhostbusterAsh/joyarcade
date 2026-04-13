@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Odd–Even Cricket</title>
+  <link rel="icon" href="assets/favicon.png">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .joy-header{position:fixed;left:0;right:0;top:0;height:56px;display:flex;align-items:center;justify-content:space-between;padding:8px 14px;background:linear-gradient(180deg,#fff,#fff);color:#08101a;box-shadow:0 6px 16px rgba(2,6,23,0.12);z-index:1200}
+    .joy-nav{display:flex;gap:8px}
+    .joy-btn{background:transparent;border:0;padding:8px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+    body{padding-top:76px}
+  </style>
+</head>
+<body>
+  <link rel="stylesheet" href="../joyarcade.css">
+  <header class="joy-header"><div style="font-weight:800">JoyArcade</div><nav class="joy-nav"><button id="backToArcade" class="joy-btn">← Back</button><button id="tryAnother" class="joy-btn">🔄 Try Another</button><a href="../achievements.html" class="joy-btn">Achievements</a><a href="../shop.html" class="joy-btn">Shop</a></nav></header>
+<img src="assets/logo.png" class="logo">
+
+<div class="card">
+
+  <!-- LOGIN -->
+  <div id="loginBox">
+    <h1>Odd–Even Cricket</h1>
+    <input id="usernameInput" placeholder="Enter username">
+    <input id="passwordInput" placeholder="Password (optional)" type="password">
+    <select id="difficulty">
+      <option value="easy">Easy</option>
+      <option value="medium">Medium</option>
+      <option value="hard">Hard</option>
+    </select>
+    <label for="userPhotoInput" class="photo-label">Upload photo</label>
+    <input id="userPhotoInput" type="file" accept="image/*">
+    <img id="userPhotoPreview" src="" class="photo-preview hidden">
+    <select id="moodSelect">
+      <option value="calm">Calm</option>
+      <option value="rage">Rage</option>
+      <option value="troll">Troll</option>
+    </select>
+    <button onclick="login()">Enter</button>
+  </div>
+
+  <!-- GAME -->
+  <div id="gameBox" class="hidden">
+
+    <div class="card-header" id="welcomeText"></div>
+      <div id="progressStats" style="font-weight:800; margin-bottom:6px; color:#bfe8c9">Wins: 0 | Losses: 0 | Best: 0 | Win Streak: 0</div>
+
+    <h1>Odd–Even Cricket</h1>
+
+    <!-- game stage: AI avatars, big board, user photo (replicates xplain.png layout) -->
+    <div class="game-stage">
+      <div class="ai-panel">
+          <div class="ai-avatars">
+            <img id="aiAvatar" src="assets/ai-calm.png" class="ai-avatar">
+          </div>
+          <div id="aiTalk" class="ai-talk">AI trash talk</div>
+      </div>
+
+        <div class="board-panel">
+          <div class="board">
+            <!-- status and all controls live on the board now -->
+            <div id="statusText"></div>
+
+            <!-- GAME MODE -->
+            <div id="modeBox">
+              <p>Select Mode</p>
+              <button onclick="setMode(1)">Quick (1 Over)</button>
+              <button onclick="setMode(3)">Standard (3 Overs)</button>
+              <button onclick="setMode('test')">Test (∞)</button>
+              <button onclick="showCustom()">Custom</button>
+
+              <div id="customBox" class="hidden">
+                <input type="number" id="customOvers" min="1" max="20" value="5">
+                <button onclick="setCustomMode()">Start</button>
+              </div>
+            </div>
+
+            <!-- TOSS -->
+            <div id="tossBox" class="hidden">
+              <p>Predict toss (Odd / Even)</p>
+              <select id="tossPrediction">
+                <option value="odd">Odd</option>
+                <option value="even">Even</option>
+              </select>
+              <p>Choose a number (0-6)</p>
+              <select id="tossNumber">
+                <option value="0">0</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+              </select>
+              <button id="submitToss" onclick="userToss()">Submit Toss</button>
+            </div>
+
+            <!-- BAT / BOWL CHOICE -->
+            <div id="choiceBox" class="hidden">
+              <p>You won the toss. Choose:</p>
+              <button onclick="chooseBat()">Bat</button>
+              <button onclick="chooseBowl()">Bowl</button>
+            </div>
+
+            <!-- SCORE -->
+            <div id="scoreBoard">
+              You: <span id="userScore">0</span> |
+              AI: <span id="aiScore">0</span>
+            </div>
+            <!-- Player Profile -->
+            <div id="profileBox" style="margin-top:8px; color:#d8ffe3; font-size:13px;">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div data-player="0" style="font-weight:800;">
+                  <div class="p-name" style="font-weight:800">Player</div>
+                  <div class="p-level" style="font-size:12px; opacity:0.9">Level 1 — Rookie</div>
+                </div>
+                <div style="text-align:right;">
+                  <div class="p-coins" style="font-weight:800">Coins: 0</div>
+                  <div class="p-best" style="font-size:12px; opacity:0.9">Best Streak: 0</div>
+                </div>
+              </div>
+              <div class="p-stats" style="margin-top:6px; font-size:12px; opacity:0.95">Matches: 0 • Wins: 0 • Win Rate: 0%</div>
+            </div>
+            <div id="overDisplay">Over: 0.0</div>
+            <!-- target / chase display -->
+            <div id="targetDisplay" style="margin-top:6px; font-weight:700; color:#ffd880">Chase: 20</div>
+            <div id="ballsLeft" style="margin-top:6px; font-weight:700; color:#bfe8c9">Balls left: —</div>
+
+            <!-- Leaderboard -->
+            <div id="leaderboardBox" style="margin-top:10px; color:#d8ffe3;">
+              <h3 style="margin:6px 0; font-size:14px;">Leaderboard</h3>
+              <ul id="leaderboardList" style="list-style:decimal; padding-left:18px; margin:0 0 8px 0;"></ul>
+            </div>
+
+            <!-- New record popup -->
+            <div id="newRecordPopup" class="pop-overlay hidden" style="position:fixed; left:50%; top:18%; transform:translateX(-50%); z-index:9999; padding:10px 14px; background:linear-gradient(90deg,#ffb86b,#ff6b6b); border-radius:8px; font-weight:800; display:inline-block;">
+            </div>
+
+            <!-- BACKGROUND SELECTOR -->
+            <div id="bgBox" style="margin-top:8px;">
+              <label for="bgSelect" style="display:block; margin-bottom:6px; font-weight:700; color:#bfe8c9">Background</label>
+              <select id="bgSelect">
+                <option value="default">Default</option>
+                <option value="beach">Beach</option>
+                <option value="space">Space</option>
+                <option value="forest">Forest</option>
+                <option value="city">City Lights</option>
+                <option value="sunset">Sunset</option>
+                <option value="neon">Neon Glow</option>
+                <option value="custom">Custom</option>
+              </select>
+            </div>
+
+            <!-- Result / Confetti placeholders -->
+            <div id="resultPopup" class="result-popup hidden" aria-hidden="true"></div>
+            <div id="confetti" class="confetti hidden" aria-hidden="true"></div>
+            <div id="outPopup" class="out-popup hidden" aria-hidden="true">OUT!</div>
+
+            <!-- background selector removed for v2 -->
+
+            <!-- HANDS -->
+            <div class="hand-container">
+              <div class="row">
+                <img src="assets/0.png" data-num="0" onclick="playHand(0)">
+                <img src="assets/1.png" data-num="1" onclick="playHand(1)">
+                <img src="assets/2.png" data-num="2" onclick="playHand(2)">
+                <img src="assets/3.png" data-num="3" onclick="playHand(3)">
+                <img src="assets/4.png" data-num="4" onclick="playHand(4)">
+                <img src="assets/5.png" data-num="5" onclick="playHand(5)">
+                <img src="assets/6.png" data-num="6" onclick="playHand(6)">
+              </div>
+            </div>
+
+            <div class="controls-row">
+              <button class="restart-btn" onclick="safeRestart()">Restart</button>
+              <button class="logout-btn" onclick="logout()">Logout</button>
+              <button class="logout-btn" onclick="startTutorial()">Tutorial</button>
+              <button class="logout-btn" onclick="openMarket()">Market</button>
+            </div>
+            <!-- pop overlay for instant visual results -->
+            <div id="popOverlay" class="pop-overlay hidden"></div>
+            <div id="inputBlocker" class="input-blocker" onclick="showBlockedMessage()"></div>
+          </div>
+        </div>
+
+      <div class="user-panel">
+        <img id="gameUserPhoto" src="assets/default-user.png" class="user-photo">
+        <div class="user-label" id="userLabel">User</div>
+      </div>
+    </div>
+
+    
+  </div>
+
+</div>
+
+<!-- Market Modal -->
+<div id="marketBox" class="market-box hidden" aria-hidden="true">
+  <div class="card">
+    <h3>Market — Backgrounds</h3>
+    <div id="marketPreview" class="market-preview" style="height:140px; border-radius:8px; margin-bottom:10px; display:flex; align-items:center; justify-content:center; color:#001; font-weight:800; box-shadow:inset 0 0 0 2px rgba(255,255,255,0.02);">
+      Preview
+    </div>
+    <div id="marketList"></div>
+    <div style="margin-top:12px; display:flex; gap:8px; justify-content:flex-end;">
+      <button onclick="closeMarket()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- END SCREEN -->
+<div id="endScreen" class="end-screen hidden" aria-hidden="true">
+  <div class="card">
+    <div id="endResult" class="result">🏁 You Win!</div>
+    <div id="endDetails" class="details">Score</div>
+    <div id="hookText" style="margin:12px 0; font-weight:800; color:#ffd880"></div>
+    <div class="btns">
+      <button class="restart-btn" onclick="restartFromEnd()">🔁 Play Again</button>
+      <button onclick="logout()" class="logout-btn">🏠 Exit</button>
+    </div>
+  </div>
+</div>
+
+<!-- Resume saved match prompt -->
+<div id="resumeBox" class="tutorial-box hidden" aria-hidden="true" style="right:18px; bottom:18px;">
+  <div class="text" id="resumeTitle">Resume saved match?</div>
+
+<script>
+  (function(){
+    const back = document.getElementById('backToArcade');
+    const tryBtn = document.getElementById('tryAnother');
+    back && back.addEventListener('click', () => location.href = '../index.html');
+    const other = ['../reactiontest/index.html','../Chopsticks/index.html','../memoryflip/index.html','../penfight/index.html','../chosen9/index.html','../GTB V2.0/index.html'];
+    tryBtn && tryBtn.addEventListener('click', () => { location.href = other[Math.floor(Math.random()*other.length)]; });
+  })();
+</script>
+  <div id="resumeBody" style="color:#d8ffe3; margin-bottom:10px">A saved match was found. Resume where you left off or discard.</div>
+  <div class="controls">
+    <button onclick="resumeSavedMatch()">Resume</button>
+    <button onclick="discardSavedMatch()">Discard</button>
+  </div>
+</div>
+
+<!-- Tutorial overlay + box -->
+<div id="tutorialOverlay" class="tutorial-overlay" aria-hidden="true"></div>
+<div id="tutorialBox" class="tutorial-box hidden" role="dialog" aria-modal="true" aria-labelledby="tutorialTitle">
+  <div id="tutorialTitle" class="text">Welcome to the tutorial</div>
+  <div id="tutorialBody" class="text" style="font-size:0.95rem; font-weight:600; color:#d8ffe3">Follow these steps to get started.</div>
+  <div class="controls">
+    <button onclick="prevTutorial()">Prev</button>
+    <button onclick="nextTutorial()">Next</button>
+    <button onclick="endTutorial()">Close</button>
+  </div>
+</div>
+
+<script src="script.js"></script>
+<script src="../joyarcade.js"></script>
+</body>
+</html>

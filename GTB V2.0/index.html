@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gattabara - A Game</title>
+  <style>
+    :root {
+      --bg: #121317;
+      --panel: #1a1d24;
+      --cell: #242833;
+      --cell2: #2e3442;
+      --safe: #4b5563;
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+      --track: #22223b;
+      --red: #ef4444;
+      --blue: #3b82f6;
+      --green: #22c55e;
+      --yellow: #facc15;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg-gradient, radial-gradient(circle at top, #1c2230 0%, var(--bg) 60%));
+      color: var(--text);
+      font-family: Inter, system-ui, sans-serif;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+    }
+    .wrap { width: min(980px, 96vw); }
+    h1 { text-align: center; margin: 0 0 6px; font-size: clamp(20px, 3.8vw, 30px); }
+    h2 { text-align: center; margin: 0 0 12px; color: var(--muted); font-size: 1rem; }
+
+    .hud {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      align-items: center;
+      background: color-mix(in srgb, var(--panel) 85%, transparent);
+      border: 1px solid color-mix(in srgb, var(--panel) 40%, transparent);
+      border-radius: 16px;
+      padding: 14px;
+      margin-bottom: 14px;
+    }
+    .turn-pill {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 999px;
+      font-weight: 800;
+      color: #0f172a;
+      margin-right: 8px;
+    }
+    .muted { color: var(--muted); }
+    .controls { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+    #difficultyWrap { display: none; }
+    #difficultyWrap.show { display: inline-flex; }
+
+    select, button {
+      border-radius: 8px;
+      border: 1px solid var(--muted);
+      background: color-mix(in srgb, var(--panel) 85%, var(--bg) 15%);
+      color: var(--text);
+      padding: 8px 10px;
+      font-weight: 600;
+      font-size: 13px;
+    }
+    button { cursor: pointer; }
+    #rollBtn {
+      border: 0;
+      background: linear-gradient(180deg, #fbbf24, #f59e0b);
+      color: #111827;
+      font-weight: 800;
+      padding: 10px 14px;
+    }
+        <script src="../joyarcade.js"></script>
+    #rollBtn[disabled] { opacity: 0.45; cursor: not-allowed; }
+
+    #dice { text-align: center; margin: 10px 0 14px; font-size: 34px; font-weight: 800; min-height: 44px; }
+    #dice.rolling { opacity: 0.25; transition: opacity 220ms ease; }
+
+    #board {
+      width: min(86vw, 620px);
+      aspect-ratio: 1;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 3px;
+      background: color-mix(in srgb, var(--bg) 92%, transparent);
+      padding: 6px;
+      border-radius: 18px;
+      border: 1px solid color-mix(in srgb, var(--panel) 30%, transparent);
+      position: relative;
+      overflow: hidden;
+    }
+    .cell {
+      position: relative;
+      border-radius: 10px;
+      background: color-mix(in srgb, var(--cell) 90%, transparent);
+      border: 1px solid color-mix(in srgb, var(--cell) 30%, transparent);
+      min-height: 68px;
+      overflow: hidden;
+    }
+    .cell.track:not(.safe) {
+      background: var(--track);
+      border: 1px solid color-mix(in srgb, var(--track) 30%, transparent);
+    }
+    .safe { background: var(--safe); }
+    .center { background: var(--cell2); }
+    .inner-entry { box-shadow: inset 0 0 0 2px rgba(255,255,255,0.22); }
+    .final { background: #9098a3; box-shadow: inset 0 0 0 2px rgba(255,255,255,0.45); }
+
+    .house-seat-0 { background: color-mix(in srgb, var(--red) 35%, var(--cell) 65%); border-color: color-mix(in srgb, var(--red) 60%, transparent); }
+    .house-seat-1 { background: color-mix(in srgb, var(--blue) 35%, var(--cell) 65%); border-color: color-mix(in srgb, var(--blue) 60%, transparent); }
+    .house-seat-2 { background: color-mix(in srgb, var(--green) 35%, var(--cell) 65%); border-color: color-mix(in srgb, var(--green) 60%, transparent); }
+    .house-seat-3 { background: color-mix(in srgb, var(--yellow) 35%, var(--cell) 65%); border-color: color-mix(in srgb, var(--yellow) 60%, transparent); }
+
+    .piece {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      position: absolute;
+      border: 2px solid rgba(255,255,255,0.85);
+      box-shadow: 0 1px 6px rgba(0,0,0,0.4);
+      cursor: pointer;
+      transition: transform .2s ease;
+    }
+    .piece:hover { transform: scale(1.1); }
+    .piece.active { outline: 2px solid #fff; outline-offset: 1px; }
+    .piece.jodi { box-shadow: 0 0 0 3px rgba(255,255,255,0.85), 0 2px 4px rgba(0,0,0,0.5); }
+    .c0 { background: radial-gradient(circle at 35% 30%, #fecaca 0, var(--red) 70%); }
+    .c1 { background: radial-gradient(circle at 35% 30%, #bfdbfe 0, var(--blue) 70%); }
+    .c2 { background: radial-gradient(circle at 35% 30%, #bbf7d0 0, var(--green) 70%); }
+    .c3 { background: radial-gradient(circle at 35% 30%, #fef08a 0, var(--yellow) 70%); }
+
+    .legend {
+      margin-top: 12px;
+      background: color-mix(in srgb, var(--panel) 88%, transparent);
+      border: 1px solid color-mix(in srgb, var(--panel) 30%, transparent);
+      border-radius: 12px;
+      padding: 8px 12px;
+      display: flex;
+      gap: 14px;
+      justify-content: center;
+      flex-wrap: wrap;
+      font-size: 13px;
+    }
+    .legend-chip { display: inline-flex; align-items: center; gap: 6px; }
+    .dot { width: 12px; height: 12px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.8); }
+
+    .celebration {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      pointer-events: none;
+      background: color-mix(in srgb, #020617 45%, transparent);
+    }
+    .celebration.show { display: flex; }
+    .celebration-card {
+      padding: 20px 26px;
+      border-radius: 16px;
+      background: #ffffff;
+      color: #111827;
+      font-size: clamp(20px, 5vw, 34px);
+      font-weight: 900;
+      box-shadow: 0 10px 30px rgba(0,0,0,.35);
+      animation: pop .5s ease;
+      text-align: center;
+      min-width: min(90vw, 460px);
+    }
+    .celebration-card.win { background: #ecfdf5; border-color: #22c55e !important; }
+    .celebration-card.lose { background: #fef2f2; border-color: #ef4444 !important; }
+    .celebration-sub { display:block; margin-top:8px; font-size:16px; font-weight:700; color:#374151; }
+    @keyframes pop {
+      from { transform: scale(.7); opacity: .2; }
+      to { transform: scale(1); opacity: 1; }
+    }
+    .confetti {
+      position: absolute;
+      top: -20px;
+      width: 10px;
+      height: 14px;
+      opacity: .9;
+      animation: drop linear forwards;
+    }
+    @keyframes drop {
+      to { transform: translateY(110vh) rotate(720deg); opacity: 0.85; }
+    }
+
+    @media (max-width: 700px){
+      .hud { grid-template-columns: 1fr; }
+      .controls { justify-content: flex-start; }
+      body { padding: 12px; }
+    }
+  </style>
+</head>
+<body>
+  <link rel="stylesheet" href="../joyarcade.css">
+  <style>
+    .joy-header{position:fixed;left:0;right:0;top:0;height:56px;display:flex;align-items:center;justify-content:space-between;padding:8px 14px;background:linear-gradient(180deg,#fff,#fff);color:#08101a;box-shadow:0 6px 16px rgba(2,6,23,0.12);z-index:1200}
+    .joy-nav{display:flex;gap:8px}
+    .joy-btn{background:transparent;border:0;padding:8px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+    body{padding-top:76px}
+  </style>
+  <header class="joy-header"><div style="font-weight:800">JoyArcade</div><nav class="joy-nav"><button id="backToArcade" class="joy-btn">← Back</button><button id="tryAnother" class="joy-btn">🔄 Try Another</button><a href="../achievements.html" class="joy-btn">Achievements</a><a href="../shop.html" class="joy-btn">Shop</a></nav></header>
+  <div class="wrap">
+    <h1>Gattabara - A Game</h1>
+    <h2>Kaudi 5x5 Strategy</h2>
+
+    <div class="hud">
+      <div>
+        <div id="turnInfo"></div>
+        <div id="eventInfo" class="muted">Roll to start.</div>
+      </div>
+      <div class="controls">
+        <select id="themeSelect">
+          <option value="dark" selected>Dark</option>
+          <option value="light">Light</option>
+          <option value="royal">Royal</option>
+        </select>
+        <select id="gameMode">
+          <option value="multiplayer" selected>Multiplayer</option>
+          <option value="single">Singleplayer</option>
+        </select>
+        <select id="playerCount">
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4" selected>4</option>
+        </select>
+        <span id="difficultyWrap">
+          <select id="difficulty">
+            <option value="easy" selected>Easy (1v1)</option>
+            <option value="medium">Medium (1v2)</option>
+            <option value="hard">Hard (1v3)</option>
+          </select>
+        </span>
+        <button id="newGameBtn">New Game</button>
+        <button id="rollBtn">Roll Kaudi</button>
+      </div>
+    </div>
+
+    <div id="dice">🎲</div>
+
+    <script>
+      (function(){
+        const back = document.getElementById('backToArcade');
+        const tryBtn = document.getElementById('tryAnother');
+        back && back.addEventListener('click', () => location.href = '../index.html');
+        const other = ['../reactiontest/index.html','../Chopsticks/index.html','../OddEveOffline/index.html','../penfight/index.html','../chosen9/index.html','../memoryflip/index.html'];
+        tryBtn && tryBtn.addEventListener('click', () => { location.href = other[Math.floor(Math.random()*other.length)]; });
+      })();
+    </script>
+    <div id="board" aria-label="Game board"></div>
+
+    <div class="legend" aria-label="Color legend">
+      <span class="legend-chip"><span class="dot c0"></span>Red House</span>
+      <span class="legend-chip"><span class="dot c1"></span>Blue House</span>
+      <span class="legend-chip"><span class="dot c2"></span>Green House</span>
+      <span class="legend-chip"><span class="dot c3"></span>Yellow House</span>
+    </div>
+  </div>
+
+  <div id="celebration" class="celebration" aria-live="polite">
+    <div id="celebrationCard" class="celebration-card"></div>
+  </div>
+
+  <script>
+    const GRID_SIZE = 5;
+    const PIECES_PER_PLAYER = 4;
+    const ROLL_DISTRIBUTION = [
+      { value: 1, weight: 29 },
+      { value: 2, weight: 35 },
+      { value: 3, weight: 20 },
+      { value: 4, weight: 9 },
+      { value: 8, weight: 7 }
+    ];
+
+    const HOME_SQUARES = [2, 22, 14, 10];
+    const INNER_PATH = [6, 7, 8, 13, 18, 17, 16, 11];
+    const INNERMOST = 12;
+    const INNER_FRONT_BY_SEAT = [7, 17, 13, 11];
+    const COLOR_META = [
+      { id: 0, name: 'Red', css: 'var(--red)' },
+      { id: 1, name: 'Blue', css: 'var(--blue)' },
+      { id: 2, name: 'Green', css: 'var(--green)' },
+      { id: 3, name: 'Yellow', css: 'var(--yellow)' }
+    ];
+
+    const THEMES = {
+      dark: {'--bg': '#18181b','--panel': '#232326','--cell': '#232326','--cell2': '#232326','--safe': '#44444a','--track': '#22223b','--text': '#e5e7eb','--muted': '#9ca3af','--bg-gradient': 'radial-gradient(circle at 30% 20%, #232326 0%, #18181b 100%)'},
+      light: {'--bg': '#e7eafe','--panel': '#e3e7ef','--cell': '#f4f6fb','--cell2': '#e0e7ff','--safe': '#c7d2fe','--track': '#b6c4e6','--text': '#22223b','--muted': '#7b809a','--bg-gradient': 'radial-gradient(circle at 60% 40%, #c7d2fe 0%, #a5b4fc 40%, #f7f7fa 100%)'},
+      royal: {'--bg': '#2a1850','--panel': '#3a217c','--cell': '#4e2fa3','--cell2': '#6a4fcf','--safe': '#eab308','--track': '#a78bfa','--text': '#f3f4f6','--muted': '#b4b6e7','--bg-gradient': 'radial-gradient(circle at 30% 20%, #a78bfa 0%, #6d28d9 40%, #2a1850 100%)'}
+    };
+
+    const boardEl = document.getElementById('board');
+    const turnInfoEl = document.getElementById('turnInfo');
+    const eventInfoEl = document.getElementById('eventInfo');
+    const diceEl = document.getElementById('dice');
+    const rollBtnEl = document.getElementById('rollBtn');
+    const playerCountEl = document.getElementById('playerCount');
+    const gameModeEl = document.getElementById('gameMode');
+    const difficultyEl = document.getElementById('difficulty');
+    const difficultyWrapEl = document.getElementById('difficultyWrap');
+    const newGameBtnEl = document.getElementById('newGameBtn');
+    const themeSelectEl = document.getElementById('themeSelect');
+    const celebrationEl = document.getElementById('celebration');
+    const celebrationCardEl = document.getElementById('celebrationCard');
+
+    const gameState = {
+      outerPath: buildOuterPath(GRID_SIZE),
+      entryOuterBySeat: [],
+      entryInnerBySeat: [],
+      players: [],
+      activePlayers: 4,
+      currentPlayer: 0,
+      currentRoll: null,
+      awaitingMove: false,
+      finished: false,
+      singlePlayer: false,
+      aiTimer: null
+    };
+
+    function weightedRoll() {
+      const total = ROLL_DISTRIBUTION.reduce((s, o) => s + o.weight, 0);
+      let r = Math.random() * total;
+      for (const item of ROLL_DISTRIBUTION) {
+        if (r < item.weight) return item.value;
+        r -= item.weight;
+      }
+      return 1;
+    }
+
+    function applyTheme(themeName) {
+      const themeVars = THEMES[themeName] || THEMES.dark;
+      for (const key in themeVars) document.documentElement.style.setProperty(key, themeVars[key]);
+      document.body.style.background = themeVars['--bg-gradient'];
+    }
+
+    function buildOuterPath(size) {
+      const path = [];
+      for (let c = 0; c < size; c += 1) path.push(c);
+      for (let r = 1; r < size; r += 1) path.push(r * size + (size - 1));
+      for (let c = size - 2; c >= 0; c -= 1) path.push((size - 1) * size + c);
+      for (let r = size - 2; r >= 1; r -= 1) path.push(r * size);
+      return path;
+    }
+
+    function createPlayers(count, singlePlayer) {
+      return Array.from({ length: count }, (_, seatIndex) => ({
+        seatIndex,
+        isBot: singlePlayer && seatIndex !== 0,
+        kills: 0,
+        pieces: Array.from({ length: PIECES_PER_PLAYER }, () => ({
+          position: HOME_SQUARES[seatIndex],
+          inHome: true,
+          inInner: false,
+          inInnermost: false,
+          innerSteps: 0,
+          isJodi: false
+        }))
+      }));
+    }
+
+    function computeEntrySquares() {
+      gameState.entryOuterBySeat = HOME_SQUARES.map((home) => {
+        const homeIndex = gameState.outerPath.indexOf(home);
+        return gameState.outerPath[(homeIndex + 1) % gameState.outerPath.length];
+      });
+      gameState.entryInnerBySeat = INNER_FRONT_BY_SEAT.slice();
+    }
+
+    function initBoard() {
+      boardEl.innerHTML = '';
+      const outerSet = new Set(gameState.outerPath);
+
+      for (let index = 0; index < GRID_SIZE * GRID_SIZE; index += 1) {
+        const cell = document.createElement('div');
+        cell.id = `cell-${index}`;
+        cell.className = 'cell';
+        if (outerSet.has(index)) cell.classList.add('track');
+        if (HOME_SQUARES.includes(index)) {
+          cell.classList.add('safe');
+          cell.classList.add(`house-seat-${HOME_SQUARES.indexOf(index)}`);
+        }
+        if (!outerSet.has(index)) cell.classList.add('center');
+        if (gameState.entryOuterBySeat.includes(index)) cell.classList.add('inner-entry');
+        if (index === INNERMOST) cell.classList.add('final');
+        boardEl.appendChild(cell);
+      }
+    }
+
+    function setEvent(text) {
+      eventInfoEl.textContent = text;
+    }
+
+    function syncModeControls() {
+      const single = gameModeEl.value === 'single';
+      gameState.singlePlayer = single;
+      playerCountEl.disabled = single;
+      difficultyWrapEl.classList.toggle('show', single);
+    }
+
+    function playersFromDifficulty() {
+      const mapping = { easy: 2, medium: 3, hard: 4 };
+      return mapping[difficultyEl.value] || 2;
+    }
+
+    function startNewGame() {
+      clearTimeout(gameState.aiTimer);
+      const single = gameModeEl.value === 'single';
+      const active = single
+        ? playersFromDifficulty()
+        : Math.max(1, Math.min(4, Number(playerCountEl.value)));
+      gameState.activePlayers = active;
+      gameState.singlePlayer = single;
+      gameState.players = createPlayers(active, single);
+      gameState.currentPlayer = 0;
+      gameState.currentRoll = null;
+      gameState.awaitingMove = false;
+      gameState.finished = false;
+      computeEntrySquares();
+      initBoard();
+      hideCelebration();
+      if (single) {
+        setEvent(`Singleplayer ${difficultyEl.value.toUpperCase()} started. You are Red.`);
+      } else {
+        setEvent('New colorful match started. Roll to play!');
+      }
+      render();
+      maybeRunAITurn();
+    }
+
+    function updateHUD() {
+      const current = gameState.players[gameState.currentPlayer];
+      const color = COLOR_META[current.seatIndex];
+      turnInfoEl.innerHTML = `<span class="turn-pill" style="background:${color.css}">${color.name} Turn</span>` +
+        `<span class="muted">${gameState.awaitingMove ? `Choose a piece for ${gameState.currentRoll}` : 'Waiting for roll'}</span>`;
+      rollBtnEl.disabled = gameState.awaitingMove || gameState.finished;
+    }
+
+    function animateRoll(finalValue) {
+      diceEl.classList.add('rolling');
+      const sequence = ['⚪', '⚫', '⚪', '⚫'];
+      let i = 0;
+      const timer = setInterval(() => {
+        diceEl.textContent = `🎲 ${sequence[i % sequence.length]}`;
+        i += 1;
+      }, 90);
+      setTimeout(() => {
+        clearInterval(timer);
+        diceEl.classList.remove('rolling');
+        diceEl.textContent = `🎲 ${finalValue}`;
+      }, 420);
+    }
+
+    function render() {
+      document.querySelectorAll('.piece').forEach((node) => node.remove());
+      recomputeJodiFlags();
+
+      const occupiedSlots = new Map();
+      gameState.players.forEach((player, playerIndex) => {
+        player.pieces.forEach((piece, pieceIndex) => {
+          const pieceEl = document.createElement('div');
+          pieceEl.className = `piece c${player.seatIndex}`;
+          if (piece.isJodi) pieceEl.classList.add('jodi');
+
+          const usedSlots = occupiedSlots.get(piece.position) ?? 0;
+          occupiedSlots.set(piece.position, usedSlots + 1);
+          pieceEl.style.left = `${8 + (usedSlots % 3) * 18}px`;
+          pieceEl.style.top = `${8 + (Math.floor(usedSlots / 3) % 3) * 18}px`;
+          pieceEl.style.zIndex = String(usedSlots + 1);
+
+          const isSelectable =
+            playerIndex === gameState.currentPlayer &&
+            gameState.awaitingMove &&
+            !piece.inInnermost &&
+            !player.isBot;
+          if (isSelectable) {
+            pieceEl.classList.add('active');
+            pieceEl.addEventListener('click', () => handlePieceSelection(playerIndex, pieceIndex));
+          }
+
+          document.getElementById(`cell-${piece.position}`)?.appendChild(pieceEl);
+        });
+      });
+
+      updateHUD();
+      maybeRunAITurn();
+    }
+
+    function recomputeJodiFlags() {
+      gameState.players.forEach((player) => {
+        player.pieces.forEach((piece) => { piece.isJodi = false; });
+        const innerGroups = new Map();
+        player.pieces.forEach((piece, idx) => {
+          if (!piece.inInner) return;
+          const items = innerGroups.get(piece.position) ?? [];
+          items.push(idx);
+          innerGroups.set(piece.position, items);
+        });
+        innerGroups.forEach((indices) => {
+          if (indices.length === 2) indices.forEach((idx) => { player.pieces[idx].isJodi = true; });
+        });
+      });
+    }
+
+    function handleRoll() {
+      if (gameState.awaitingMove || gameState.finished) return;
+      if (gameState.players[gameState.currentPlayer]?.isBot) return;
+      gameState.currentRoll = weightedRoll();
+      gameState.awaitingMove = true;
+      animateRoll(gameState.currentRoll);
+      setEvent(`Rolled ${gameState.currentRoll}. Select a piece.`);
+      render();
+    }
+
+    function progressScore(piece) {
+      if (piece.inInnermost) return 200;
+      if (piece.inInner) return 100 + piece.innerSteps;
+      if (piece.inHome) return 0;
+      return 20;
+    }
+
+    function wouldKillAtPosition(activePlayer, landingPosition, attackerIsJodi = false) {
+      if (HOME_SQUARES.includes(landingPosition) || landingPosition === INNERMOST) return false;
+      for (let playerIndex = 0; playerIndex < gameState.players.length; playerIndex += 1) {
+        if (playerIndex === activePlayer) continue;
+        const player = gameState.players[playerIndex];
+        const enemies = player.pieces.filter((piece) =>
+          !piece.inInnermost && !HOME_SQUARES.includes(piece.position) && piece.position === landingPosition
+        );
+        if (enemies.length === 2) {
+          const enemyIsJodi = enemies.every((p) => p.inInner);
+          if (enemyIsJodi === attackerIsJodi) return true;
+        }
+        if (enemies.length === 1 && !attackerIsJodi) return true;
+      }
+      return false;
+    }
+
+    function getBestAIMove(playerIndex, rolled) {
+      const player = gameState.players[playerIndex];
+      const choices = [];
+
+      player.pieces.forEach((piece, pieceIndex) => {
+        const isJodiMove = piece.isJodi;
+        if (isJodiMove && (rolled % 2 !== 0)) return;
+
+        const appliedSteps = isJodiMove ? rolled / 2 : rolled;
+        const preview = previewMove(piece, appliedSteps, playerIndex);
+        const landing = preview.next.position;
+        const score =
+          (wouldKillAtPosition(playerIndex, landing, isJodiMove) ? 1000 : 0) +
+          (preview.enteredInnermost ? 700 : 0) +
+          (preview.enteredInner ? 300 : 0) +
+          progressScore(preview.next);
+        choices.push({ pieceIndex, score });
+      });
+
+      if (choices.length === 0) return null;
+      choices.sort((a, b) => b.score - a.score);
+      return choices[0].pieceIndex;
+    }
+
+    function endTurnWithoutMove(playerIndex) {
+      gameState.awaitingMove = false;
+      gameState.currentRoll = null;
+      diceEl.textContent = '🎲';
+      setEvent(`${COLOR_META[gameState.players[playerIndex].seatIndex].name} has no valid move.`);
+      gameState.currentPlayer = (gameState.currentPlayer + 1) % gameState.activePlayers;
+      render();
+    }
+
+    function aiTakeTurn(playerIndex) {
+      if (!gameState.players[playerIndex] || !gameState.players[playerIndex].isBot || gameState.finished) return;
+      if (gameState.awaitingMove) return;
+
+      setEvent(`${COLOR_META[gameState.players[playerIndex].seatIndex].name} bot is thinking...`);
+      diceEl.textContent = '🤖';
+
+      gameState.aiTimer = setTimeout(() => {
+        gameState.currentRoll = weightedRoll();
+        gameState.awaitingMove = true;
+        animateRoll(gameState.currentRoll);
+        setEvent(`Bot rolled ${gameState.currentRoll}.`);
+        render();
+
+        gameState.aiTimer = setTimeout(() => {
+          const move = getBestAIMove(playerIndex, gameState.currentRoll);
+          if (move === null) {
+            endTurnWithoutMove(playerIndex);
+            return;
+          }
+          handlePieceSelection(playerIndex, move);
+        }, 520);
+      }, 700);
+    }
+
+    function maybeRunAITurn() {
+      clearTimeout(gameState.aiTimer);
+      if (!gameState.singlePlayer || gameState.finished || gameState.awaitingMove) return;
+      const player = gameState.players[gameState.currentPlayer];
+      if (!player || !player.isBot) return;
+      aiTakeTurn(gameState.currentPlayer);
+    }
+
+    function previewMove(piece, steps, playerIndex) {
+      const copy = { ...piece };
+      let enteredInner = false;
+      let enteredInnermost = false;
+
+      if (copy.inHome) copy.inHome = false;
+
+      const seat = gameState.players[playerIndex].seatIndex;
+      const entryOuter = gameState.entryOuterBySeat[seat];
+      const ownInnerFront = gameState.entryInnerBySeat[seat];
+      let remaining = steps;
+
+      while (remaining > 0) {
+        if (copy.inInnermost) break;
+
+        if (copy.inInner) {
+          const canEnterInnermost =
+            copy.position === ownInnerFront &&
+            copy.innerSteps >= INNER_PATH.length - 1 &&
+            remaining === 1;
+
+          if (canEnterInnermost) {
+            copy.position = INNERMOST;
+            copy.inInner = false;
+            copy.inInnermost = true;
+            enteredInnermost = true;
+            remaining -= 1;
+            break;
+          }
+
+          const innerIndex = INNER_PATH.indexOf(copy.position);
+          if (innerIndex === -1) break;
+
+          copy.position = INNER_PATH[(innerIndex + 1) % INNER_PATH.length];
+          copy.innerSteps += 1;
+          remaining -= 1;
+          continue;
+        }
+
+        const canEnterFromGate = gameState.players[playerIndex].kills >= 1 && copy.position === entryOuter;
+        if (canEnterFromGate) {
+          copy.position = ownInnerFront;
+          copy.inInner = true;
+          copy.innerSteps = 0;
+          enteredInner = true;
+          continue;
+        }
+
+        const currentPathIndex = gameState.outerPath.indexOf(copy.position);
+        if (currentPathIndex === -1) break;
+        copy.position = gameState.outerPath[(currentPathIndex - 1 + gameState.outerPath.length) % gameState.outerPath.length];
+        remaining -= 1;
+      }
+
+      return { next: copy, enteredInner, enteredInnermost };
+    }
+
+    function applyKillRule(activePlayer, landingPosition, attackerIsJodi = false) {
+      if (HOME_SQUARES.includes(landingPosition) || landingPosition === INNERMOST) return false;
+      let killed = false;
+
+      gameState.players.forEach((player, playerIndex) => {
+        if (playerIndex === activePlayer) return;
+        const enemyIndicesAtPos = [];
+        player.pieces.forEach((piece, idx) => {
+          if (HOME_SQUARES.includes(piece.position) || piece.inInnermost) return;
+          if (piece.position === landingPosition) enemyIndicesAtPos.push(idx);
+        });
+
+        if (enemyIndicesAtPos.length === 2) {
+          const enemyIsJodi = enemyIndicesAtPos.every((idx) => player.pieces[idx].inInner);
+          if (enemyIsJodi !== attackerIsJodi) return;
+          const enemySeat = player.seatIndex;
+          enemyIndicesAtPos.forEach((idx) => {
+            Object.assign(player.pieces[idx], {
+              position: HOME_SQUARES[enemySeat], inHome: true, inInner: false, inInnermost: false, innerSteps: 0
+            });
+          });
+          killed = true;
+          return;
+        }
+
+        if (enemyIndicesAtPos.length === 1 && !attackerIsJodi) {
+          const enemySeat = player.seatIndex;
+          Object.assign(player.pieces[enemyIndicesAtPos[0]], {
+            position: HOME_SQUARES[enemySeat], inHome: true, inInner: false, inInnermost: false, innerSteps: 0
+          });
+          killed = true;
+        }
+      });
+
+      if (killed) gameState.players[activePlayer].kills += 1;
+      return killed;
+    }
+
+    function checkWinner(playerIndex) {
+      const player = gameState.players[playerIndex];
+      return player.pieces.every((piece) => piece.inInnermost);
+    }
+
+    function showCelebration(seatIndex, resultType = 'win') {
+      const color = COLOR_META[seatIndex];
+      const seatColor = getComputedStyle(document.documentElement).getPropertyValue(['--red','--blue','--green','--yellow'][seatIndex]);
+      const title = resultType === 'lose' ? `💀 You Lose!` : `🎉 ${color.name} Wins! 🎉`;
+      const subtitle = resultType === 'lose'
+        ? `${color.name} got all 4 tokens in the final center.`
+        : `All 4 ${color.name} tokens reached the final center.`;
+      celebrationCardEl.innerHTML = `${title}<span class="celebration-sub">${subtitle}</span>`;
+      celebrationCardEl.classList.remove('win', 'lose');
+      celebrationCardEl.classList.add(resultType === 'lose' ? 'lose' : 'win');
+      celebrationCardEl.style.border = `5px solid ${seatColor}`;
+      celebrationEl.classList.add('show');
+
+      for (let i = 0; i < 70; i += 1) {
+        const confetti = document.createElement('div');
+        confetti.className = 'confetti';
+        confetti.style.left = `${Math.random() * 100}%`;
+        confetti.style.background = ['#ef4444','#3b82f6','#22c55e','#facc15','#f472b6'][Math.floor(Math.random() * 5)];
+        confetti.style.animationDuration = `${2 + Math.random() * 2.6}s`;
+        confetti.style.animationDelay = `${Math.random() * 0.6}s`;
+        celebrationEl.appendChild(confetti);
+      }
+      setTimeout(() => {
+        celebrationEl.querySelectorAll('.confetti').forEach((n) => n.remove());
+      }, 3600);
+    }
+
+    function hideCelebration() {
+      celebrationEl.classList.remove('show');
+      celebrationEl.querySelectorAll('.confetti').forEach((n) => n.remove());
+    }
+
+    function handlePieceSelection(playerIndex, pieceIndex) {
+      if (!gameState.awaitingMove || playerIndex !== gameState.currentPlayer || gameState.finished) return;
+
+      const rolled = gameState.currentRoll;
+      const movingPiece = gameState.players[playerIndex].pieces[pieceIndex];
+      const isJodiMove = movingPiece.isJodi;
+
+      if (isJodiMove && rolled % 2 !== 0) {
+        setEvent('Jodi moves only on even rolls.');
+        render();
+        return;
+      }
+
+      const appliedSteps = isJodiMove ? rolled / 2 : rolled;
+      const preview = previewMove(movingPiece, appliedSteps, playerIndex);
+      Object.assign(movingPiece, preview.next);
+
+      const didKill = applyKillRule(playerIndex, movingPiece.position, isJodiMove);
+      const extraByRoll = rolled === 4 || rolled === 8;
+
+      gameState.awaitingMove = false;
+      gameState.currentRoll = null;
+      diceEl.textContent = '🎲';
+
+      if (checkWinner(playerIndex)) {
+        gameState.finished = true;
+        const winnerSeat = gameState.players[playerIndex].seatIndex;
+        const winnerName = COLOR_META[winnerSeat].name;
+        setEvent(`${winnerName} completed all coins and won the game!`);
+        const humanLost = gameState.singlePlayer && gameState.players[playerIndex].isBot;
+        showCelebration(winnerSeat, humanLost ? 'lose' : 'win');
+      } else if (!didKill && !extraByRoll) {
+        gameState.currentPlayer = (gameState.currentPlayer + 1) % gameState.activePlayers;
+        setEvent('Turn ended.');
+      } else {
+        setEvent(didKill ? 'Kill! Re-chance.' : `Re-chance from roll ${rolled}.`);
+      }
+
+      render();
+    }
+
+    rollBtnEl.addEventListener('click', handleRoll);
+    newGameBtnEl.addEventListener('click', startNewGame);
+    gameModeEl.addEventListener('change', syncModeControls);
+    themeSelectEl.addEventListener('change', (e) => applyTheme(e.target.value));
+
+    computeEntrySquares();
+    syncModeControls();
+    applyTheme('dark');
+    startNewGame();
+  </script>
+</body>
+</html>

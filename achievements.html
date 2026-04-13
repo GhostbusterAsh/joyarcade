@@ -1,0 +1,47 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Achievements — JoyArcade</title>
+  <style>
+    body{font-family:Inter,system-ui,Arial;margin:0;padding:28px;background:linear-gradient(180deg,#fff7ea,#fdf3e6);color:#08101a}
+    .joy-header{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:#fff;border-radius:8px;box-shadow:0 8px 20px rgba(2,6,23,0.06);margin-bottom:18px}
+    .list{max-width:820px;margin:0 auto;background:#fff;padding:16px;border-radius:12px;box-shadow:0 8px 20px rgba(2,6,23,0.06)}
+    .item{display:flex;justify-content:space-between;padding:10px 6px;border-bottom:1px solid #f3efe8}
+    .item:last-child{border-bottom:0}
+    .badge{font-weight:800}
+  </style>
+  <link rel="stylesheet" href="joyarcade.css">
+</head>
+<body>
+  <header class="joy-header"><div style="font-weight:800">JoyArcade</div><nav><a href="index.html">Home</a></nav></header>
+  <main class="list">
+    <h2>🏆 Achievements</h2>
+    <div id="achList"></div>
+  </main>
+  <script>
+    const DEFAULT = {
+      fast_hands:{title:'Fast Hands', desc:'Play Reaction Test under 300ms', rank:'Rare'},
+      pro_reflex:{title:'Pro Reflex', desc:'Play Reaction Test under 220ms', rank:'Epic'},
+      inhuman:{title:'Inhuman', desc:'Play Reaction Test under 150ms', rank:'Legendary'},
+      first_game:{title:'First Game', desc:'Play your first game', rank:'Common'},
+      play_10:{title:'Play 10', desc:'Play a game 10 times', rank:'Uncommon'},
+      try_3_games:{title:'Explorer', desc:'Try 3 different games', rank:'Rare'}
+    };
+    function load() {
+      const a = JSON.parse(localStorage.getItem('joy_achievements')||'{}');
+      const container = document.getElementById('achList');
+      container.innerHTML='';
+      for(const id of Object.keys(DEFAULT)){
+        const def = DEFAULT[id];
+        const unlocked = a[id] && a[id].unlocked;
+        const el = document.createElement('div'); el.className='item';
+        el.innerHTML = `<div><strong>${def.title}</strong><div style="font-size:13px;color:#57606a">${def.desc}</div></div><div class="badge">${def.rank} ${unlocked? '✅':'❌'}</div>`;
+        container.appendChild(el);
+      }
+    }
+    load();
+  </script>
+</body>
+</html>

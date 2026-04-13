@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Market — Odd–Even Cricket</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header style="display:flex; align-items:center; justify-content:space-between; padding:12px 18px;">
+    <div style="display:flex; align-items:center; gap:12px;">
+      <img src="assets/logo.png" style="height:28px;">
+      <h2 style="margin:0; font-size:18px">Market</h2>
+    </div>
+    <div style="display:flex; gap:12px; align-items:center;">
+      <div id="marketCoins" style="background:#0b2; color:#001; padding:6px 10px; border-radius:16px; font-weight:800">0</div>
+      <button onclick="location.href='index.html'">Back</button>
+    </div>
+  </header>
+
+  <main style="padding:16px;">
+    <div style="max-width:1100px; margin:0 auto;">
+      <p style="color:#d8ffe3; font-weight:700">Buy backgrounds to personalize your game. Prices shown in coins.</p>
+      <div id="marketGrid" class="market-grid">
+        <div id="marketList"></div>
+      </div>
+    </div>
+  </main>
+
+  <script src="script.js"></script>
+  <script>
+    // update coins display and render market on this page
+    document.addEventListener('DOMContentLoaded', ()=>{
+      try {
+        const box = document.getElementById('marketCoins');
+        if (box) box.innerText = (profile && profile.coins) ? profile.coins : 0;
+        renderMarket();
+        syncBgOptions();
+      } catch(e){}
+    });
+  </script>
+</body>
+</html>
