@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chopsticks</title>
+  <link rel="icon" href="assets/favicon.png" sizes="any" />
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    /* Minimal header for consistent JoyArcade navigation */
+    .joy-header{position:fixed;left:0;right:0;top:0;height:56px;display:flex;align-items:center;justify-content:space-between;padding:8px 14px;background:linear-gradient(180deg,#fff,#fff);color:#08101a;box-shadow:0 6px 16px rgba(2,6,23,0.12);z-index:1200}
+    .joy-brand{display:flex;align-items:center;gap:10px;font-weight:800}
+    .joy-nav{display:flex;gap:8px;align-items:center}
+    .joy-btn{background:transparent;border:0;padding:8px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+    .joy-btn.primary{background:linear-gradient(90deg,#2bb3ff,#ffb020);color:#08101a}
+    body{padding-top:76px}
+  </style>
+</head>
+<body>
+  <link rel="stylesheet" href="../joyarcade.css">
+  <header class="joy-header" role="banner">
+    <div class="joy-brand"><a href="../index.html" style="text-decoration:none;color:inherit">JoyArcade</a></div>
+    <nav class="joy-nav">
+      <button id="backToArcade" class="joy-btn">← Back to Arcade</button>
+      <button id="tryAnother" class="joy-btn">🔄 Try Another</button>
+      <a href="../achievements.html" class="joy-btn">Achievements</a>
+      <a href="../shop.html" class="joy-btn">Shop</a>
+    </nav>
+  </header>
+  <div id="auth" class="panel">
+    <h2>Login</h2>
+    <input id="loginUser" placeholder="Username" autocomplete="username" />
+    <input id="loginPass" type="password" placeholder="Password" autocomplete="current-password" />
+    <button id="loginBtn">Login</button>
+    <button id="goRegisterBtn" class="secondary">Go to Register</button>
+    <button id="goRulesBtn" class="secondary">Rules</button>
+
+    <label for="bgPicker" class="label">Background theme</label>
+    <select id="bgPicker">
+      <option value="neon">Neon Night</option>
+      <option value="sunset">Sunset Glow</option>
+      <option value="ocean">Ocean Mist</option>
+      <option value="forest">Forest Dusk</option>
+      <option value="space">Deep Space</option>
+    </select>
+  </div>
+
+  <div id="register" class="panel hidden">
+    <h2>Register</h2>
+    <input id="regUser" placeholder="Username" autocomplete="username" />
+    <input id="regPass" type="password" placeholder="Password" autocomplete="new-password" />
+    <button id="registerBtn">Create Account</button>
+    <button id="backLoginFromRegisterBtn" class="secondary">Back to Login</button>
+  </div>
+
+  <div id="rules" class="panel hidden rules-card">
+    <h2>Game Rules</h2>
+    <ul>
+      <li>Start: you and AI both begin with <strong>(1,1)</strong>.</li>
+      <li>Attack: target += attacker; if target is 5 or more, it becomes 0.</li>
+      <li>Dead hands (0) cannot attack or be attacked.</li>
+      <li>Merge: only if both hands are alive and total is 4 or less.</li>
+      <li>Split: choose two values from 0-4 that keep same total.</li>
+      <li>You win when AI has (0,0). You lose when you have (0,0).</li>
+      <li>AI difficulty levels adjust how many moves ahead it thinks.</li>
+      <li>Have fun and try to outsmart the AI!</li>
+      <li>Checkout my other projects at <a href="https://oddeve.netlify.app">Odd-Eve</a></li>
+      <li>An updated version is here! <a href="https://cyberoddeven.netlify.app">Updated Odd-Eve</a></li>
+      <li>Note: Game may be not chrome-friendly.</li>
+    </ul>
+    <button id="backLoginFromRulesBtn">Back to Login</button>
+  </div>
+
+  <div id="game" class="panel hidden">
+    <header>
+      <span id="welcome"></span>
+      <button id="logoutBtn">Logout</button>
+    </header>
+
+    <section class="meta">
+      <p id="scoreboard" class="status">Wins: <span id="winsCount">0</span> | Losses: <span id="lossesCount">0</span></p>
+      <label class="label" for="difficultySelect">AI Difficulty</label>
+      <select id="difficultySelect">
+        <option value="easy">Easy (1 move lookahead)</option>
+        <option value="medium">Medium (2 moves lookahead)</option>
+        <option value="hard">Hard (3 moves lookahead)</option>
+      </select>
+    </section>
+
+    <div class="board">
+      <div class="player">
+        <img id="pL" alt="Your left hand" />
+        <img id="pR" alt="Your right hand" />
+      </div>
+
+      <div class="controls">
+        <button id="mergeBtn">Merge</button>
+        <button id="splitBtn">Split</button>
+      </div>
+
+      <div class="ai">
+        <img id="aL" alt="AI left hand" />
+        <img id="aR" alt="AI right hand" />
+      </div>
+    </div>
+
+    <p id="turnStatus" class="status">Your turn</p>
+    <p id="trashTalk" class="trash-talk">Ready when you are 👀</p>
+    <p class="hint">Select your hand, then click an AI hand to attack.</p>
+  </div>
+
+  <div id="end" class="hidden">
+    <img id="endImg" alt="Game result" />
+    <h2 id="endText"></h2>
+    <button id="playAgainBtn">Play Again</button>
+  </div>
+
+  <script src="script.js"></script>
+  <script>
+    (function(){
+      const back = document.getElementById('backToArcade');
+      const tryBtn = document.getElementById('tryAnother');
+      back && back.addEventListener('click', () => location.href = '../index.html');
+      const other = ['../reactiontest/index.html','../memoryflip/index.html','../OddEveOffline/index.html','../penfight/index.html','../chosen9/index.html','../GTB V2.0/index.html'];
+      tryBtn && tryBtn.addEventListener('click', () => { location.href = other[Math.floor(Math.random()*other.length)]; });
+    })();
+  </script>
+  <script src="../joyarcade.js"></script>
+</body>
+</html>

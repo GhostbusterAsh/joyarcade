@@ -1,0 +1,479 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Doubt - JoyArcade Narrative</title>
+<link rel="stylesheet" href="../joyarcade.css">
+<style>
+  :root{
+    --bg-top:#fffaf1;
+    --bg-bottom:#eef4fb;
+    --panel:#ffffff;
+    --panel-border:rgba(8,16,26,0.08);
+    --text:#08101a;
+    --muted:#6b7280;
+    --choice-1:#2bb3ff;
+    --choice-2:#ffb020;
+    --meter-1:#ffb020;
+    --meter-2:#ff7a7a;
+    --glow:rgba(255,176,32,0.18);
+  }
+  body{font-family:Inter,system-ui,Arial,sans-serif;margin:0;padding:28px;background:
+    radial-gradient(circle at top,rgba(255,255,255,0.9),transparent 36%),
+    linear-gradient(180deg,var(--bg-top),var(--bg-bottom));color:var(--text);transition:background .45s ease,color .45s ease}
+  body.doubt-mid{
+    --bg-top:#131a2f;
+    --bg-bottom:#050811;
+    --panel:rgba(10,15,29,0.88);
+    --panel-border:rgba(155,219,255,0.12);
+    --text:#edf2ff;
+    --muted:#aab4cc;
+    --choice-1:#9bdbff;
+    --choice-2:#ffb56a;
+    --meter-1:#ffcf68;
+    --meter-2:#ff7d9e;
+    --glow:rgba(155,219,255,0.14);
+  }
+  body.doubt-high{
+    --bg-top:#080b14;
+    --bg-bottom:#010205;
+    --panel:rgba(8,10,18,0.94);
+    --panel-border:rgba(255,122,122,0.18);
+    --text:#f6f2f2;
+    --muted:#cfb9b9;
+    --choice-1:#ffd166;
+    --choice-2:#ff6b6b;
+    --meter-1:#ffd166;
+    --meter-2:#ff4d6d;
+    --glow:rgba(255,77,109,0.12);
+  }
+  .container{max-width:880px;margin:72px auto 40px;padding:20px;background:var(--panel);border:1px solid var(--panel-border);border-radius:16px;box-shadow:0 26px 60px rgba(2,6,23,0.16),0 0 0 1px var(--glow);backdrop-filter:blur(10px);transition:background .45s ease,border-color .45s ease,box-shadow .45s ease}
+  .bg-ambience{position:fixed;inset:-10%;pointer-events:none;z-index:-1;opacity:.55;filter:blur(34px);background:
+    radial-gradient(circle at 20% 20%,rgba(43,179,255,.26),transparent 40%),
+    radial-gradient(circle at 75% 18%,rgba(255,176,32,.22),transparent 42%),
+    radial-gradient(circle at 50% 80%,rgba(155,219,255,.18),transparent 44%);
+    animation:drift 16s ease-in-out infinite alternate}
+  body.doubt-mid .bg-ambience{opacity:.72;animation-duration:12s}
+  body.doubt-high .bg-ambience{opacity:.86;animation-duration:8s;filter:blur(22px) saturate(1.1)}
+  .screen-flash{animation:screenPulse .4s ease}
+  .choice-btn:active{transform:translateY(1px) scale(.995)}
+  .choice-btn.pop{animation:pop .22s ease}
+  .hud{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}
+  .hud .small-btn{border:1px solid var(--panel-border);background:transparent;color:var(--text);padding:7px 10px;border-radius:10px;font-size:12px;cursor:pointer}
+  .hud .small-btn:hover{filter:brightness(1.04)}
+  h1{margin:0 0 8px;font-size:20px}
+  #statusLine{margin:2px 0 18px;font-size:13px;color:var(--muted);letter-spacing:.01em}
+  #text{white-space:pre-wrap;min-height:140px;margin-bottom:18px;font-size:16px;line-height:1.55}
+  #text.typing{border-left:2px solid rgba(255,176,32,.7);padding-left:10px;animation:caret .9s step-end infinite}
+  #choices{display:flex;flex-direction:column;gap:10px}
+  .choice-btn{padding:11px 13px;border-radius:12px;border:0;background:linear-gradient(90deg,var(--choice-1),var(--choice-2));font-weight:700;cursor:pointer;color:#08101a;box-shadow:0 10px 24px rgba(2,6,23,0.12);transition:transform .16s ease,box-shadow .16s ease,filter .16s ease}
+  .choice-btn:hover{transform:translateY(-1px);filter:saturate(1.04)}
+  .muted{color:var(--muted);font-size:14px}
+  .meter{height:10px;background:rgba(127,127,127,0.14);border-radius:999px;overflow:hidden;margin-top:8px}
+  .meter>i{display:block;height:100%;background:linear-gradient(90deg,var(--meter-1),var(--meter-2));width:0%;transition:width .25s ease}
+  .footer{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-top:16px}
+  .small{font-size:13px;color:var(--muted)}
+  .whisper{margin:8px 0 14px;font-size:12px;color:var(--muted);opacity:.9;letter-spacing:.02em;min-height:16px}
+  .tension-wrap{display:none;margin:0 0 14px}
+  .tension-wrap.active{display:block}
+  .tension-label{font-size:11px;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.06em}
+  .tension-bar{height:7px;border-radius:999px;background:rgba(127,127,127,.16);overflow:hidden}
+  .tension-bar>i{display:block;height:100%;width:100%;background:linear-gradient(90deg,#ffd166,#ff4d6d)}
+  .ja-modal{display:none}
+  .joy-header{position:fixed;left:0;right:0;top:0;height:56px;display:flex;align-items:center;justify-content:space-between;padding:8px 14px;background:linear-gradient(180deg,rgba(255,255,255,0.96),rgba(255,255,255,0.92));color:#08101a;box-shadow:0 6px 16px rgba(2,6,23,0.12);z-index:1200}
+  @media (max-width: 640px){
+    body{padding:18px}
+    .container{margin:72px auto 28px;padding:16px}
+    .footer{flex-direction:column;align-items:stretch}
+  }
+  @keyframes drift{
+    0%{transform:translate3d(-2%,-1%,0) scale(1)}
+    100%{transform:translate3d(2%,2%,0) scale(1.08)}
+  }
+  @keyframes pop{
+    0%{transform:scale(.98)}
+    100%{transform:scale(1)}
+  }
+  @keyframes screenPulse{
+    0%{filter:brightness(1)}
+    50%{filter:brightness(1.14)}
+    100%{filter:brightness(1)}
+  }
+  @keyframes caret{
+    0%,100%{border-left-color:transparent}
+    50%{border-left-color:rgba(255,176,32,.7)}
+  }
+</style>
+</head>
+<body>
+<header class="joy-header"><div style="font-weight:800">JoyArcade</div><nav style="display:flex;gap:8px"><a href="../index.html" class="joy-btn">← Back</a><a href="../achievements.html" class="joy-btn">Achievements</a><a href="../shop.html" class="joy-btn">Shop</a></nav></header>
+<div class="bg-ambience" aria-hidden="true"></div>
+
+<div class="container" role="main">
+  <div class="hud">
+    <div class="small">Mood engine inspired by crowd-amplified perception loops.</div>
+    <button id="fullscreenBtn" class="small-btn" type="button">Enter Fullscreen</button>
+  </div>
+  <h1>Doubt</h1>
+  <div id="statusLine">A lie is small until someone believes it.</div>
+  <div id="whisperLine" class="whisper"></div>
+  <div id="tensionWrap" class="tension-wrap">
+    <div class="tension-label">Pressure window</div>
+    <div class="tension-bar"><i id="tensionBar"></i></div>
+  </div>
+  <div id="text">Loading...</div>
+  <div id="choices"></div>
+
+  <div style="margin-top:14px">
+    <div class="muted">Psych meter</div>
+    <div class="meter"><i id="meterBar"></i></div>
+  </div>
+
+  <div class="footer">
+    <div class="small">A short interactive narrative about truth, rumor, and memory decay.</div>
+    <div><button id="restart" class="choice-btn" style="background:linear-gradient(90deg,#f3f3f3,#e6e6e6);">Restart</button></div>
+  </div>
+</div>
+
+<script>
+let currentScene = "start";
+let state = {
+  liedAboutAnuj: false,
+  spreadFear: false,
+  doubtLevel: 0,
+  socialDamage: 0,
+  watchedDemo: false,
+  confrontedAnuj: false,
+  cornerClosed: false
+};
+let sceneTimer = null;
+let sceneTimerTick = null;
+let textAnimator = null;
+let isTyping = false;
+
+const whispers = [
+  "You are not remembering alone.",
+  "Rumor runs faster than proof.",
+  "Someone else is editing your sentence.",
+  "The corner is listening now.",
+  "You can still stop this."
+];
+
+const scenes = {
+  start: {
+    text: "\"Is that you?\" The image sits on your screen. A blurry frame. Pankaj near the old tank room corner.\n\nThe group chat lights up before you can zoom in.",
+    choices: [
+      { text: "Ignore it and join the match anyway", next: "pre_match" },
+      { text: "Open the chat and stare at the image", next: "pre_match", effect: () => { state.doubtLevel += 1; } }
+    ]
+  },
+  pre_match: {
+    text: "The jokes come first. Then the dares.\n\nSomeone says the corner is haunted. Someone else says Pankaj edited the image. Nobody really believes it.\n\nYou save the picture anyway.",
+    choices: [
+      { text: "Laugh it off and keep playing", next: "chain_game" },
+      { text: "Say the room felt wrong even yesterday", next: "chain_game", effect: () => { state.spreadFear = true; state.socialDamage += 1; } }
+    ]
+  },
+  chain_game: {
+    text: "Round after round, you start reading everyone perfectly. Hiding spots. Routes. Habits. Winning becomes mechanical.\n\nThat makes the tank room feel worse, not better.",
+    choices: [ { text: "Follow the group into the next round", next: "ghost_game" } ]
+  },
+  ghost_game: {
+    text: "You press yourself behind the tank. Dust. Metal. A blind corner.\n\nFootsteps stop outside. Silence keeps going long after it should.",
+    timer: 7,
+    timeoutNext: "caught_by_anuj",
+    timeoutEffect: () => { state.doubtLevel += 1; },
+    choices: [
+      { text: "Stay perfectly still", next: "caught_by_anuj" },
+      { text: "Peek toward the corridor", next: "caught_by_anuj", effect: () => { state.doubtLevel += 1; } }
+    ]
+  },
+  caught_by_anuj: {
+    text: "\"Got you.\" Anuj pulls you out with a quick tug and a grin that looks too certain.\n\nThe others barely notice. The round moves on.",
+    choices: [
+      { text: "Accept it and leave with him", next: "normal_exit" },
+      { text: "Lie: \"You didn't catch me properly\"", next: "lie_exit", effect: () => { state.liedAboutAnuj = true; state.doubtLevel += 1; state.socialDamage += 1; } }
+    ]
+  },
+  lie_exit: {
+    text: "You walk out first.\n\n\"He didn't even come near me.\"\n\nIt is a small lie. Clean. Easy. The kind that only needs one listener.",
+    choices: [
+      { text: "Add: \"Something touched me in the dark\"", next: "group_fear", effect: () => { state.spreadFear = true; state.doubtLevel += 1; state.socialDamage += 1; } },
+      { text: "Leave it at that", next: "group_neutral" }
+    ]
+  },
+  group_fear: {
+    text: "The story changes shape as soon as it leaves your mouth.\n\nBy the time three people repeat it back, Anuj is no longer a guy who grabbed you in a game. He is the boy standing in the wrong corner after the lights go out.",
+    choices: [ { text: "Watch everyone absorb it", next: "group_panics" } ]
+  },
+  group_neutral: {
+    text: "No one fully buys it. But they do glance at Anuj differently.\n\nA weak lie still leaves fingerprints.",
+    choices: [ { text: "Keep playing", next: "group_aftertaste" } ]
+  },
+  group_panics: {
+    text: "Nobody wants the tank room now.\n\nPeople start pointing out details you never said. A cold patch. A hand on a shoulder. A face in the reflection. The corner gets marked off like something contagious.",
+    choices: [
+      { text: "Let the panic grow", next: "paranoia_scene", effect: () => { state.cornerClosed = true; state.doubtLevel += 1; state.socialDamage += 1; } },
+      { text: "Try to soften the story", next: "paranoia_scene", effect: () => { state.doubtLevel += 1; } }
+    ]
+  },
+  group_aftertaste: {
+    text: "The match resumes, but the rhythm is off.\n\nSomeone asks who was near the corner. Someone else says they heard two sets of footsteps. The room keeps your sentence longer than you meant it to.",
+    choices: [ { text: "Stay with the group", next: "paranoia_scene" } ]
+  },
+  paranoia_scene: {
+    text: "By evening, people start remembering things differently.\n\nSomeone swears Anuj never used to go near that side. Someone else says he always did. You know memory is bending because you can feel yours bending first.",
+    choices: [
+      { text: "Check the corner again", next: "touch_scene", effect: () => { state.doubtLevel += 1; } },
+      { text: "Stay away and listen to the rumors", next: "touch_scene", effect: () => { state.spreadFear = true; state.socialDamage += 1; } }
+    ]
+  },
+  touch_scene: {
+    condition: () => state.liedAboutAnuj,
+    fallback: "quiet_aftermath",
+    text: "Near the sealed-off corner, somebody jerks away and blurts out, \"Did you just touch me?\"\n\nThree people answer at once. None of them say the same thing.",
+    timer: 6,
+    timeoutNext: "anuj_checks",
+    timeoutEffect: () => { state.spreadFear = true; state.doubtLevel += 1; },
+    choices: [
+      { text: "Say nothing", next: "anuj_checks" },
+      { text: "Repeat your story louder", next: "anuj_checks", effect: () => { state.spreadFear = true; state.doubtLevel += 1; state.socialDamage += 1; } }
+    ]
+  },
+  quiet_aftermath: {
+    text: "Because you told the truth, the strange moment never grows teeth.\n\nThe corner is only a corner. The game is only a game. Even so, you still remember how long that silence lasted behind the tank.",
+    choices: [ { text: "Sit with the unease", next: "ending" } ]
+  },
+  anuj_checks: {
+    text: "Anuj hears the whispering and walks straight to the corner.\n\n\"Watch,\" he says.\n\nThere is something mean in how calm he sounds. Or maybe you only hear it because of what you started.",
+    choices: [
+      { text: "Observe closely", next: "anuj_reveal", effect: () => { state.watchedDemo = true; state.doubtLevel += 1; } },
+      { text: "Look away", next: "uneasy_end", effect: () => { state.doubtLevel += 1; } }
+    ]
+  },
+  anuj_reveal: {
+    text: "Anuj smirks and reaches toward the wall.\n\n\"See? Nothing there.\"\n\nRight hand.\n\nYou remember telling everyone it was his left.",
+    choices: [
+      { text: "Ignore the mismatch", next: "uneasy_end" },
+      { text: "Confront him", next: "glitch_scene", effect: () => { state.confrontedAnuj = true; state.doubtLevel += 2; } }
+    ]
+  },
+  glitch_scene: {
+    text: "\"When did I use my right hand?\" Anuj asks.\n\nNo one laughs.\n\nYou open your mouth to say left, because that is what you remember saying, except now the memory arrives secondhand, like something overheard through a wall.",
+    timer: 8,
+    timeoutNext: "fracture_scene",
+    timeoutEffect: () => { state.doubtLevel += 1; state.socialDamage += 1; },
+    choices: [
+      { text: "Insist you remember", next: "fracture_scene", effect: () => { state.doubtLevel += 1; state.socialDamage += 1; } },
+      { text: "Stop talking", next: "fracture_scene", effect: () => { state.doubtLevel += 1; } }
+    ]
+  },
+  fracture_scene: {
+    text: "The group starts correcting itself in real time.\n\n\"No, he said right.\"\n\n\"No, you said left first.\"\n\n\"No, the room was closed before that.\"\n\nEvery version has your voice in it somewhere.",
+    choices: [
+      { text: "Follow the argument until it breaks", next: "mental_break", effect: () => { state.doubtLevel += 1; } },
+      { text: "Leave before anyone settles it", next: "ending", effect: () => { state.doubtLevel += 1; } }
+    ]
+  },
+  uneasy_end: {
+    text: "People pretend to move on.\n\nBut the corner stays empty. Anuj stops smiling. You stop trusting the exact shape of your own sentence.",
+    choices: [ { text: "Later...", next: "ending" } ]
+  },
+  mental_break: {
+    text: "Your memory frays in public.\n\nLeft becomes maybe. Maybe becomes never. The lie that began as protection now feels older than you are, as if you only stepped into a story already waiting for someone reckless enough to tell it.",
+    choices: [ { text: "Face it", next: "ending" } ]
+  },
+  normal_exit: {
+    text: "You accept getting caught. The round ends. Anuj forgets it before dinner.\n\nLater, when someone mentions the old image again, nobody can agree whether it was even creepy in the first place. Honesty makes the whole thing smaller.",
+    choices: [ { text: "Next day", next: "ending" } ]
+  },
+  ending: {
+    text: "Night settles in. The story does not.",
+    choices: [ { text: "See what remains", next: "compute_end" } ]
+  },
+  ending_normal: {
+    text: "You kept the moment honest, so it never learned how to haunt you.\n\nBy the end of the week, the corner is just another part of the map.\n\n\"I overthought it,\" you tell yourself, and this time the sentence is true enough to let you sleep.",
+    choices: [ { text: "Restart", next: "start" } ]
+  },
+  ending_uncertain: {
+    text: "You only bent the truth a little, but other people finished the job for you.\n\nNow the corner belongs to rumor, and rumor never gives borrowed things back.\n\n\"It wasn't real... right?\" you think, already knowing the worse answer: it became real because you needed it to.",
+    choices: [ { text: "Restart", next: "start" } ]
+  },
+  ending_break: {
+    text: "By the time you try to untangle it, every version of the night includes a different you.\n\nOne lied. One warned everyone. One watched Anuj prove nothing was there. One saw the wrong hand anyway.\n\n\"I knew I lied. I just couldn't remember how anymore.\"",
+    choices: [ { text: "Restart", next: "start" } ]
+  },
+  ending_true: {
+    text: "You made it up.\n\nThat part is clear.\n\nBut the corner is still empty, the group still flinches when someone walks behind them, and Anuj still refuses to talk about that night.\n\nIf a lie can reorganize everyone's memory, what exactly stops it from becoming a place?",
+    choices: [ { text: "Restart", next: "start" } ]
+  }
+};
+
+function getEndingKey(){
+  if (state.liedAboutAnuj && state.spreadFear && state.socialDamage >= 3 && state.doubtLevel >= 4) return "ending_true";
+  if (!state.liedAboutAnuj && state.doubtLevel <= 2) return "ending_normal";
+  if (state.doubtLevel >= 5 || (state.confrontedAnuj && state.watchedDemo)) return "ending_break";
+  return "ending_uncertain";
+}
+
+function getStatusLine(sceneKey){
+  if (sceneKey.startsWith("ending_")) return "What survives is not always what happened.";
+  if (!state.liedAboutAnuj) return "Truth keeps the room smaller.";
+  if (state.spreadFear && state.cornerClosed) return "Your lie has a location now.";
+  if (state.spreadFear) return "Other people are carrying your lie for you.";
+  if (state.doubtLevel >= 4) return "You are no longer remembering alone.";
+  return "A lie is small until someone believes it.";
+}
+
+function updateMeter(){
+  const pct = Math.max(0, Math.min(100, Math.round((state.doubtLevel / 7) * 100)));
+  document.getElementById("meterBar").style.width = pct + "%";
+  document.body.classList.toggle("doubt-mid", state.doubtLevel >= 3);
+  document.body.classList.toggle("doubt-high", state.doubtLevel >= 5);
+  if (state.doubtLevel >= 5) {
+    document.body.classList.add("screen-flash");
+    setTimeout(() => document.body.classList.remove("screen-flash"), 250);
+  }
+  const whisperLine = document.getElementById("whisperLine");
+  whisperLine.innerText = whispers[Math.min(whispers.length - 1, Math.floor(Math.random() * whispers.length))];
+}
+
+function clearSceneTimers() {
+  if (sceneTimer) clearTimeout(sceneTimer);
+  if (sceneTimerTick) clearInterval(sceneTimerTick);
+  sceneTimer = null;
+  sceneTimerTick = null;
+  const wrap = document.getElementById("tensionWrap");
+  wrap.classList.remove("active");
+  document.getElementById("tensionBar").style.width = "100%";
+}
+
+function animateSceneText(text) {
+  const textEl = document.getElementById("text");
+  if (textAnimator) clearInterval(textAnimator);
+  textEl.innerText = "";
+  textEl.classList.add("typing");
+  isTyping = true;
+  let idx = 0;
+  textAnimator = setInterval(() => {
+    idx += (state.doubtLevel >= 5 ? 2 : 1);
+    textEl.innerText = text.slice(0, idx);
+    if (idx >= text.length) {
+      clearInterval(textAnimator);
+      textAnimator = null;
+      isTyping = false;
+      textEl.classList.remove("typing");
+      textEl.innerText = text;
+    }
+  }, state.doubtLevel >= 4 ? 10 : 16);
+}
+
+function showScene(sceneKey){
+  clearSceneTimers();
+  if (sceneKey === "compute_end") {
+    showScene(getEndingKey());
+    return;
+  }
+  const scene = scenes[sceneKey];
+  if (!scene) {
+    console.warn("Missing scene", sceneKey);
+    return;
+  }
+  if (scene.condition && !scene.condition()) {
+    showScene(scene.fallback || "ending");
+    return;
+  }
+  currentScene = sceneKey;
+  animateSceneText(scene.text);
+  document.getElementById("statusLine").innerText = getStatusLine(sceneKey);
+  if (scene.timer && scene.timeoutNext) {
+    const wrap = document.getElementById("tensionWrap");
+    const bar = document.getElementById("tensionBar");
+    wrap.classList.add("active");
+    const total = scene.timer * 1000;
+    const started = Date.now();
+    sceneTimerTick = setInterval(() => {
+      const elapsed = Date.now() - started;
+      const left = Math.max(0, total - elapsed);
+      bar.style.width = `${Math.round((left / total) * 100)}%`;
+    }, 50);
+    sceneTimer = setTimeout(() => {
+      if (scene.timeoutEffect) {
+        try { scene.timeoutEffect(); } catch (e) {}
+      }
+      showScene(scene.timeoutNext);
+    }, total);
+  }
+  const choicesDiv = document.getElementById("choices");
+  choicesDiv.innerHTML = "";
+  scene.choices.forEach((choice) => {
+    const btn = document.createElement("button");
+    btn.className = "choice-btn";
+    btn.innerText = choice.text;
+    btn.onclick = () => {
+      btn.classList.add("pop");
+      if (choice.effect) {
+        try {
+          choice.effect();
+          updateMeter();
+        } catch (e) {}
+      }
+      if (choice.next) showScene(choice.next);
+    };
+    choicesDiv.appendChild(btn);
+  });
+  const textEl = document.getElementById("text");
+  textEl.onclick = () => {
+    if (isTyping) {
+      if (textAnimator) clearInterval(textAnimator);
+      textAnimator = null;
+      isTyping = false;
+      textEl.classList.remove("typing");
+      textEl.innerText = scene.text;
+    }
+  };
+  updateMeter();
+}
+
+document.getElementById("restart").addEventListener("click", () => {
+  state = {
+    liedAboutAnuj: false,
+    spreadFear: false,
+    doubtLevel: 0,
+    socialDamage: 0,
+    watchedDemo: false,
+    confrontedAnuj: false,
+    cornerClosed: false
+  };
+  showScene("start");
+});
+
+const fullscreenBtn = document.getElementById("fullscreenBtn");
+function syncFullscreenLabel() {
+  fullscreenBtn.innerText = document.fullscreenElement ? "Exit Fullscreen" : "Enter Fullscreen";
+}
+fullscreenBtn.addEventListener("click", async () => {
+  try {
+    if (!document.fullscreenElement) {
+      await document.documentElement.requestFullscreen();
+    } else {
+      await document.exitFullscreen();
+    }
+  } catch (e) {
+    console.warn("Fullscreen not available", e);
+  } finally {
+    syncFullscreenLabel();
+  }
+});
+document.addEventListener("fullscreenchange", syncFullscreenLabel);
+syncFullscreenLabel();
+
+showScene("start");
+
+window.DoubtGame = { get state(){ return state; }, scenes, showScene };
+</script>
+
+<script src="../joyarcade.js"></script>
+</body>
+</html>

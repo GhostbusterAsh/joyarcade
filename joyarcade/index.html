@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Play 90-Second Psychological Games Online Free | JoyArcade</title>
+  <meta name="description" content="Play free 90-second psychological browser games on JoyArcade. Reflex tests, mind games, memory challenges, and narrative tension games. No download." />
+  <meta name="robots" content="index,follow,max-image-preview:large" />
+  <meta name="theme-color" content="#0d1220" />
+  <link rel="canonical" href="https://joyarcade.example.com/" />
+
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Play 90-Second Psychological Games Online Free | JoyArcade" />
+  <meta property="og:description" content="You have 90 seconds. Prove you're not average." />
+  <meta property="og:url" content="https://joyarcade.example.com/" />
+  <meta property="og:site_name" content="JoyArcade" />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Play 90-Second Psychological Games Online Free | JoyArcade" />
+  <meta name="twitter:description" content="Most players quit in under 60 seconds. Try JoyArcade now." />
+
+  <link rel="stylesheet" href="joyarcade.css" />
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "VideoGame",
+    "name": "JoyArcade",
+    "url": "https://joyarcade.example.com/",
+    "applicationCategory": "Game",
+    "genre": ["Arcade", "Psychological", "Puzzle", "Strategy"],
+    "operatingSystem": "Web Browser",
+    "description": "JoyArcade is a free browser gaming platform for 90-second psychological games, reflex tests, and memory challenges.",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    }
+  }
+  </script>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+
+  <header class="topbar container">
+    <div class="brand">
+      <div class="logo" aria-hidden="true">JA</div>
+      <div>
+        <p class="brand-title">JoyArcade</p>
+        <p class="brand-sub">90-second psychological games</p>
+      </div>
+    </div>
+
+    <div class="top-actions">
+      <button id="audioToggle" class="icon-btn" type="button" aria-pressed="false" aria-label="Toggle audio">🔇</button>
+      <button class="menu-toggle" id="menuToggle" aria-expanded="false" aria-controls="mainNav">Menu</button>
+    </div>
+
+    <nav class="nav" id="mainNav" aria-label="Primary">
+      <a href="#featured">Featured</a>
+      <a href="#games">All Games</a>
+      <a href="#seo-links">Popular Pages</a>
+      <a id="take-quiz" class="btn btn-primary" href="#quiz">Find My Game</a>
+    </nav>
+  </header>
+
+  <main id="main" class="container">
+    <section class="hero" aria-labelledby="hero-title">
+      <div>
+        <p class="eyebrow">PSYCHOLOGICAL ARCADE</p>
+        <h1 id="hero-title">You have 90 seconds. Prove you’re not average.</h1>
+        <p class="hero-copy">Most players quit in under 60 seconds.</p>
+
+        <div class="hero-actions">
+          <a class="btn btn-primary btn-big" id="startChallenge" data-game-id="ReactionTest" href="reactiontest/index.html">Start Challenge Now</a>
+        </div>
+
+        <ul class="trust-row" aria-label="Platform highlights">
+          <li>⚡ Instant play</li>
+          <li>🧠 Games that mess with your head</li>
+          <li>🏆 Replay + score loops</li>
+        </ul>
+      </div>
+
+      <aside class="hero-panel" aria-label="Live activity preview">
+        <h2>Tonight’s pulse</h2>
+        <p id="pulseOnline">🔥 12 players online</p>
+        <p id="pulseReaction">⚡ Avg reaction: 284ms</p>
+        <p id="pulseFail">🧠 63% failed today</p>
+        <button id="randomGameBtn" class="btn btn-secondary" type="button">Random adrenaline hit</button>
+      </aside>
+    </section>
+
+    <section id="featured" class="section" aria-labelledby="featured-title">
+      <div class="section-head">
+        <h2 id="featured-title">Instant Play Path</h2>
+        <p>Start first. Explore after.</p>
+      </div>
+      <div class="path-grid">
+        <article class="path-card">
+          <p class="path-tag">FAST HOOK</p>
+          <h3>Reaction Sprint</h3>
+          <p>Open with pressure and score-chasing.</p>
+          <a href="reactiontest/index.html">Play first challenge →</a>
+        </article>
+        <article class="path-card">
+          <p class="path-tag">MIND LOOP</p>
+          <h3>Memory + Strategy</h3>
+          <p>Switch from reflex to pattern thinking.</p>
+          <a href="memoryflip/index.html">Enter mind mode →</a>
+        </article>
+        <article class="path-card path-card-accent">
+          <p class="path-tag">PSYCHO EDGE</p>
+          <h3>Story Distortion</h3>
+          <p>Unsettling short narrative with mental tension.</p>
+          <a href="chosen9/index.html">Play Doubt →</a>
+        </article>
+      </div>
+    </section>
+
+    <section id="quiz" class="section" aria-labelledby="quiz-title">
+      <div class="section-head">
+        <h2 id="quiz-title">Find My Game (Quick Selector)</h2>
+        <p>One click recommendation.</p>
+      </div>
+      <form id="quickQuiz" class="quiz-form">
+        <label>
+          I want to play something...
+          <select id="quizMood" name="quizMood">
+            <option value="reflex">Fast and intense</option>
+            <option value="strategy">Strategic and smart</option>
+            <option value="memory">Calm and mental</option>
+            <option value="story">Narrative and mysterious</option>
+          </select>
+        </label>
+        <button class="btn btn-primary" type="submit">Recommend now</button>
+      </form>
+      <p id="quizResult" class="quiz-result" aria-live="polite"></p>
+    </section>
+
+    <section id="games" class="section" aria-labelledby="games-title">
+      <div class="section-head">
+        <h2 id="games-title">Game Library</h2>
+        <p id="result-count" aria-live="polite"></p>
+      </div>
+
+      <label class="search-wrap" for="game-search">
+        <span>Search by mood, title, or style</span>
+        <input id="game-search" type="search" placeholder="e.g. strategy, memory, fast" autocomplete="off" />
+      </label>
+
+      <div class="game-grid" id="game-grid">
+        <article class="game-card" data-tags="reflex fast score" data-title="Odd Eve">
+          <h3>Odd Eve</h3>
+          <p>Quick odd-even cricket rounds for instant competition.</p>
+          <a class="btn btn-secondary play-link" data-game-id="OddEve" href="OddEveOffline/index.html">Play now</a>
+        </article>
+        <article class="game-card" data-tags="strategy social" data-title="Chopsticks">
+          <h3>Chopsticks</h3>
+          <p>Multiplayer hand strategy with playful mind games.</p>
+          <a class="btn btn-secondary play-link" data-game-id="Chopsticks" href="Chopsticks/index.html">Play now</a>
+        </article>
+        <article class="game-card" data-tags="strategy challenge" data-title="Gattabara">
+          <h3>Gattabara</h3>
+          <p>Fast classroom-inspired tactical duels.</p>
+          <a class="btn btn-secondary play-link" data-game-id="Gattabara" href="GTB V2.0/index.html">Play now</a>
+        </article>
+        <article class="game-card" data-tags="reflex challenge" data-title="Pen Fight">
+          <h3>Pen Fight</h3>
+          <p>Short rounds with high replay and pressure.</p>
+          <a class="btn btn-secondary play-link" data-game-id="PenFight" href="penfight/index.html">Play now</a>
+        </article>
+        <article class="game-card" data-tags="memory logic" data-title="Memory Flip">
+          <h3>Memory Flip</h3>
+          <p>Football-themed memory challenge with clean pacing.</p>
+          <a class="btn btn-secondary play-link" data-game-id="MemoryFlip" href="memoryflip/index.html">Play now</a>
+        </article>
+        <article class="game-card" data-tags="reflex score fast" data-title="Reaction Time Test">
+          <h3>Reaction Time Test</h3>
+          <p>Test your reaction and chase leaderboard-worthy times.</p>
+          <a class="btn btn-secondary play-link" data-game-id="ReactionTest" href="reactiontest/index.html">Play now</a>
+        </article>
+        <article class="game-card" data-tags="story mystery short" data-title="Doubt">
+          <h3>Doubt</h3>
+          <p>A short psychological narrative about truth and memory.</p>
+          <a class="btn btn-secondary play-link" data-game-id="Doubt" href="chosen9/index.html">Play now</a>
+        </article>
+      </div>
+    </section>
+
+    <section id="seo-links" class="section" aria-labelledby="seo-links-title">
+      <div class="section-head">
+        <h2 id="seo-links-title">Popular Game Pages</h2>
+        <p>Internal links for faster discovery.</p>
+      </div>
+      <ul class="seo-links">
+        <li><a href="reactiontest/index.html">Play Reaction Time Test Online – Free Browser Game</a></li>
+        <li><a href="memoryflip/index.html">Play Memory Flip Game Online – Football Memory Challenge</a></li>
+        <li><a href="chosen9/index.html">Play Doubt Online – Short Psychological Story Game</a></li>
+        <li><a href="Chopsticks/index.html">Play Chopsticks Strategy Game Online</a></li>
+      </ul>
+    </section>
+  </main>
+
+  <div id="idleOverlay" class="idle-overlay" aria-hidden="true">
+    <div class="idle-card">
+      <p>Starting in <span id="idleCountdown">3</span>…</p>
+      <button id="idleCancel" class="btn btn-ghost" type="button">I’m still browsing</button>
+    </div>
+  </div>
+
+  <div id="rewardToast" class="reward-toast" aria-live="polite" hidden></div>
+
+  <footer class="container footer">
+    <p>Homepage → instant play → explore more.</p>
+  </footer>
+
+
+  <audio id="themeMusic" src="assets/feet-dont-fail-me-now.mp3" preload="metadata" loop></audio>
+
+  <script src="joyarcade.js"></script>
+</body>
+</html>

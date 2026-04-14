@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reaction Time Test</title>
+<style>
+  /* JoyArcade shared header + button styles (minimal, self-contained) */
+  .joy-header{position:fixed;left:0;right:0;top:0;height:56px;display:flex;align-items:center;justify-content:space-between;padding:8px 14px;background:linear-gradient(180deg,#fff,#fff);color:#08101a;box-shadow:0 6px 16px rgba(2,6,23,0.12);z-index:1200}
+  .joy-brand{display:flex;align-items:center;gap:10px;font-weight:800}
+  .joy-nav{display:flex;gap:8px;align-items:center}
+  .joy-btn{background:transparent;border:0;padding:8px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+  .joy-btn.primary{background:linear-gradient(90deg,#2bb3ff,#ffb020);color:#08101a}
+  /* push content below header */
+  #game{padding-top:86px}
+
+    :root {
+      --idle-bg: #123055;
+      --wait-bg: #c72d2d;
+      --go-bg: #189c40;
+      --text: #ffffff;
+      --button-bg: rgba(255, 255, 255, 0.2);
+      --button-border: rgba(255, 255, 255, 0.55);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    body {
+      color: var(--text);
+      background: var(--idle-bg);
+    }
+
+    #game {
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 1rem;
+      gap: 1rem;
+      transition: background-color 0.15s linear;
+      user-select: none;
+      cursor: pointer;
+    }
+
+    .title {
+      font-size: clamp(1.4rem, 2.5vw, 2rem);
+      font-weight: 700;
+      margin: 0;
+    }
+
+    #status {
+      font-size: clamp(1.7rem, 5vw, 3rem);
+      font-weight: 700;
+      margin: 0;
+      line-height: 1.2;
+    }
+
+    .instructions,
+    #result,
+    #bestTime {
+      margin: 0;
+      font-size: clamp(1rem, 2.3vw, 1.3rem);
+      opacity: 0.95;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.75rem;
+    }
+
+    button {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text);
+      background: var(--button-bg);
+      border: 2px solid var(--button-border);
+      border-radius: 999px;
+      padding: 0.7rem 1.3rem;
+      min-width: 7rem;
+      cursor: pointer;
+      transition: transform 0.08s ease, background-color 0.2s ease;
+    }
+
+    button:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    button:active {
+      transform: scale(0.97);
+    }
+
+    #game.idle {
+      background: var(--idle-bg);
+    }
+
+    #game.waiting {
+      background: var(--wait-bg);
+    }
+
+    #game.ready {
+      background: var(--go-bg);
+    }
+  </style>
+  <link rel="stylesheet" href="../joyarcade.css">
+</head>
+<body>
+  <header class="joy-header" role="banner">
+    <div class="joy-brand">
+      <a href="../index.html" aria-label="JoyArcade Home" style="text-decoration:none;color:inherit">JoyArcade</a>
+    </div>
+    <nav class="joy-nav" aria-label="Game navigation">
+      <button id="backToArcade" class="joy-btn">← Back to Arcade</button>
+      <button id="tryAnother" class="joy-btn">🔄 Try Another Game</button>
+      <a href="../achievements.html" class="joy-btn">Achievements</a>
+      <a href="../shop.html" class="joy-btn">Shop</a>
+      <button id="openQuiz" class="joy-btn">Quiz</button>
+    </nav>
+  </header>
+  <main id="game" class="idle" role="application" aria-live="polite">
+    <h1 class="title">Reaction Time Test</h1>
+    <p id="status">Click Start to test your reaction time.</p>
+    <p class="instructions">Wait for green, then click as fast as you can.</p>
+    <p id="result">Reaction time: --</p>
+    <p id="feedback">Speed comment: --</p>
+    <p id="rank">Rank: --</p>
+    <p id="streak">Streak: 0</p>
+    <p id="bestTime">Best time: --</p>
+    <div class="controls">
+      <button id="startBtn" type="button">Start</button>
+      <button id="playAgainBtn" type="button" class="joy-btn primary" style="display:none">Play Again</button>
+      <button id="resetBtn" type="button">Reset</button>
+    </div>
+    <div id="recommend" style="margin-top:10px; text-align:center; color:#fff; opacity:0.95">
+      <div style="font-weight:800; margin-bottom:6px">Try something different</div>
+      <div style="display:flex;gap:8px;justify-content:center">
+        <a href="../memoryflip/index.html" style="padding:8px 10px;border-radius:10px;background:rgba(255,255,255,0.08);color:#fff;text-decoration:none">Memory Game</a>
+        <a href="../Chopsticks/index.html" style="padding:8px 10px;border-radius:10px;background:rgba(255,255,255,0.08);color:#fff;text-decoration:none">Chopsticks</a>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const game = document.getElementById('game');
+    const statusText = document.getElementById('status');
+    const resultText = document.getElementById('result');
+    const feedbackText = document.getElementById('feedback');
+    const bestTimeText = document.getElementById('bestTime');
+    const startBtn = document.getElementById('startBtn');
+    const resetBtn = document.getElementById('resetBtn');
+
+    const BEST_TIME_KEY = 'reaction-time-best';
+
+    let state = 'idle';
+    let startTime = 0;
+    let timeoutId = null;
+    let streak = 0;
+
+    function readBestTime() {
+      const best = Number(localStorage.getItem(BEST_TIME_KEY));
+      if (!Number.isFinite(best) || best <= 0) {
+        return null;
+      }
+      return best;
+    }
+
+    function renderBestTime() {
+      const best = readBestTime();
+      bestTimeText.textContent = best === null ? 'Best time: --' : `Best time: ${best} ms`;
+    }
+
+    function clearPendingTimeout() {
+      if (timeoutId !== null) {
+        clearTimeout(timeoutId);
+        timeoutId = null;
+      }
+    }
+
+    function getReactionFeedback(reactionTime) {
+      if (reactionTime >= 1000) {
+        return 'Too slow, keep up with the pace!';
+      }
+      if (reactionTime >= 600) {
+        return 'A bit slow—stay sharp!';
+      }
+      if (reactionTime >= 350) {
+        return 'Nice reaction!';
+      }
+      if (reactionTime >= 250) {
+        return 'Great speed!';
+      }
+      if (reactionTime >= 150) {
+      return 'Lightning fast!';
+      }
+  else {
+        return 'Inhuman reflexes!';
+      }
+    }
+
+    function getRank(time) {
+      if (time < 150) return "Insane";
+      if (time < 220) return "Pro";
+      if (time < 300) return "Good";
+      if (time < 400) return "Average";
+      return "Slow";
+    }
+
+    // Tiny synthesized click sounds using Web Audio API
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    let audioCtx = null;
+    function playBeep(frequency = 880, duration = 0.06, type = 'sine') {
+      try {
+        if (!AudioCtx) return;
+        if (!audioCtx) audioCtx = new AudioCtx();
+        const o = audioCtx.createOscillator();
+        const g = audioCtx.createGain();
+        o.type = type;
+        o.frequency.value = frequency;
+        g.gain.value = 0.0001;
+        o.connect(g);
+        g.connect(audioCtx.destination);
+        const now = audioCtx.currentTime;
+        g.gain.setValueAtTime(0.0001, now);
+        g.gain.exponentialRampToValueAtTime(0.12, now + 0.005);
+        o.start(now);
+        g.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+        o.stop(now + duration + 0.02);
+      } catch (e) {}
+    }
+
+    function playSuccessSound(){ playBeep(1000, 0.06, 'sine'); }
+    function playEarlySound(){ playBeep(240, 0.06, 'square'); }
+    function playStartSound(){ playBeep(520, 0.04, 'sine'); }
+
+    function setState(newState) {
+      state = newState;
+      game.classList.remove('idle', 'waiting', 'ready');
+      game.classList.add(newState);
+    }
+
+    function startRound() {
+      clearPendingTimeout();
+      setState('waiting');
+      statusText.textContent = 'Wait for green...';
+      resultText.textContent = 'Reaction time: --';
+      feedbackText.textContent = 'Speed comment: --';
+
+      const randomDelay = Math.floor(Math.random() * 3000) + 2000;
+      timeoutId = setTimeout(() => {
+        setState('ready');
+        statusText.textContent = 'CLICK!';
+        startTime = performance.now();
+        timeoutId = null;
+      }, randomDelay);
+    }
+
+    function handleTooEarly() {
+      clearPendingTimeout();
+      setState('idle');
+      statusText.textContent = 'Too early! Try again.';
+      resultText.textContent = 'Reaction time: --';
+      feedbackText.textContent = 'Speed comment: Too eager—wait for green!';
+      // reset streak and play sound
+      streak = 0;
+      document.getElementById('streak').textContent = `Streak: ${streak}`;
+      playEarlySound();
+    }
+
+    function handleSuccessfulClick() {
+      const reactionTime = Math.round(performance.now() - startTime);
+      setState('idle');
+      statusText.textContent = 'Click Start to test your reaction time.';
+      resultText.textContent = `Reaction time: ${reactionTime} ms`;
+      feedbackText.textContent = `Speed comment: ${getReactionFeedback(reactionTime)}`;
+
+      // Show Play Again CTA
+      try { playAgainBtn.style.display = '' } catch(e){}
+
+      // streak logic: <300ms increments
+      if (reactionTime < 300) {
+        streak += 1;
+      } else {
+        streak = 0;
+      }
+      document.getElementById('streak').textContent = `Streak: ${streak}`;
+
+      // rank display
+      const rankText = getRank(reactionTime);
+      document.getElementById('rank').textContent = `Rank: ${rankText}`;
+
+      // play success sound
+      playSuccessSound();
+
+      const best = readBestTime();
+      if (best === null || reactionTime < best) {
+        localStorage.setItem(BEST_TIME_KEY, String(reactionTime));
+      }
+      renderBestTime();
+
+      // If just missed the best by a small margin, give encouraging message
+      if (best !== null && reactionTime > best && reactionTime - best <= 25) {
+        feedbackText.textContent = feedbackText.textContent + '  🔥 So close!';
+      }
+
+      // Reward and achievements via JoyArcade API if available
+      try{
+        if(window.JoyArcade){
+          // 1 coin per play
+          window.JoyArcade.addCoins(1);
+          const a = window.JoyArcade.getAchievements ? window.JoyArcade.getAchievements() : {};
+          if(reactionTime < 300 && !(a && a.fast_hands && a.fast_hands.unlocked)){
+            window.JoyArcade.setAchievement('fast_hands',{unlocked:true, rank:'Rare'});
+            window.JoyArcade.addCoins(5);
+          }
+          if(reactionTime < 220 && !(a && a.pro_reflex && a.pro_reflex.unlocked)){
+            window.JoyArcade.setAchievement('pro_reflex',{unlocked:true, rank:'Epic'});
+            window.JoyArcade.addCoins(10);
+          }
+          if(reactionTime < 150 && !(a && a.inhuman && a.inhuman.unlocked)){
+            window.JoyArcade.setAchievement('inhuman',{unlocked:true, rank:'Legendary'});
+            window.JoyArcade.addCoins(15);
+          }
+        }
+      }catch(e){}
+    }
+
+    startBtn.addEventListener('click', (event) => {
+      event.stopPropagation();
+      startRound();
+      playStartSound();
+      try { playAgainBtn.style.display = 'none' } catch(e){}
+    });
+
+    resetBtn.addEventListener('click', (event) => {
+      event.stopPropagation();
+      clearPendingTimeout();
+      localStorage.removeItem(BEST_TIME_KEY);
+      setState('idle');
+      statusText.textContent = 'Click Start to test your reaction time.';
+      resultText.textContent = 'Reaction time: --';
+      feedbackText.textContent = 'Speed comment: --';
+      renderBestTime();
+    });
+
+    // Navigation + try another
+    const backBtn = document.getElementById('backToArcade');
+    const tryAnotherBtn = document.getElementById('tryAnother');
+    const playAgainBtn = document.getElementById('playAgainBtn');
+    backBtn && backBtn.addEventListener('click', () => { location.href = '../index.html'; });
+    const openQuizBtn = document.getElementById('openQuiz');
+    openQuizBtn && openQuizBtn.addEventListener('click', () => { location.href = '../index.html'; });
+    // list of sibling games to pick from
+    const otherGames = ['../Chopsticks/index.html','../memoryflip/index.html','../OddEveOffline/index.html','../penfight/index.html','../chosen9/index.html','../GTB V2.0/index.html'];
+    tryAnotherBtn && tryAnotherBtn.addEventListener('click', () => {
+      const choice = otherGames[Math.floor(Math.random() * otherGames.length)];
+      location.href = choice;
+    });
+    playAgainBtn && playAgainBtn.addEventListener('click', (e) => { e.stopPropagation(); startRound(); playStartSound(); playAgainBtn.style.display = 'none'; });
+
+    game.addEventListener('click', (event) => {
+      if (event.target === startBtn || event.target === resetBtn) {
+        return;
+      }
+
+      if (state === 'waiting') {
+        handleTooEarly();
+      } else if (state === 'ready') {
+        handleSuccessfulClick();
+      }
+    });
+
+    renderBestTime();
+  </script>
+  <script src="../joyarcade.js"></script>
+</body>
+</html>

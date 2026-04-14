@@ -1,0 +1,1055 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Pen Fight</title>
+  <style>
+    :root { --accent:#6c4f3d; }
+    html, body { height:100%; margin:0; font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif; }
+    body {
+      background:linear-gradient(#f7f7f9,#eef2f6);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:16px;
+      transition:background .2s ease;
+    }
+    .wrap { width:min(980px, 100%); position:relative; }
+    h1 { margin:0 0 10px; color:var(--accent); font-size:20px; text-align:center; }
+    .panel {
+      background:rgba(255,255,255,.82);
+      border:1px solid #e6e6e6;
+      border-radius:10px;
+      padding:10px;
+      box-shadow:0 4px 12px rgba(0,0,0,.08);
+      margin-bottom:10px;
+    }
+    .ui { display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; align-items:center; }
+    .controls, .meta { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+    button, select, input {
+      background:#fff;
+      border:1px solid #d8d8d8;
+      padding:8px 10px;
+      border-radius:6px;
+      font:inherit;
+    }
+    button { cursor:pointer; }
+    button:focus-visible, select:focus-visible, input:focus-visible, canvas:focus-visible {
+      outline:2px solid #3f7dff;
+      outline-offset:2px;
+    }
+    .hint { font-size:13px; color:#666; }
+    .msg { font-weight:600; color:var(--accent); min-height:20px; margin-bottom:8px; }
+    .score { font-size:14px; color:#333; font-weight:600; }
+    #game {
+      width:100%;
+      max-width:100%;
+      height:auto;
+      display:block;
+      border-radius:8px;
+      box-shadow:0 6px 18px rgba(0,0,0,.12);
+      touch-action:none;
+      user-select:none;
+      background:transparent;
+    }
+    #endScreen, #loginScreen {
+      position:absolute;
+      inset:0;
+      background:rgba(0,0,0,.72);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      flex-direction:column;
+      color:white;
+      border-radius:8px;
+      z-index:4;
+      padding:20px;
+      text-align:center;
+    }
+    #loginScreen { display:flex; }
+    .card {
+      background:#1f1f24;
+      border:1px solid #34343c;
+      border-radius:10px;
+      padding:16px;
+      width:min(420px, 94%);
+    }
+    .log {
+      max-height:130px;
+      overflow:auto;
+      font-size:12px;
+      background:#fff;
+      border:1px solid #ececec;
+      border-radius:8px;
+      padding:8px;
+      line-height:1.45;
+    }
+    @media (max-width: 680px) {
+      h1 { font-size:18px; }
+      .controls label { display:block; width:100%; font-size:13px; }
+      .ui { align-items:flex-start; }
+    }
+    /* JoyArcade header */
+    .joy-header{position:fixed;left:0;right:0;top:0;height:56px;display:flex;align-items:center;justify-content:space-between;padding:8px 14px;background:linear-gradient(180deg,#fff,#fff);color:#08101a;box-shadow:0 6px 16px rgba(2,6,23,0.12);z-index:1200}
+    .joy-nav{display:flex;gap:8px}
+    .joy-btn{background:transparent;border:0;padding:8px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+    body{padding-top:76px}
+  </style>
+</head>
+<body>
+  <link rel="stylesheet" href="../joyarcade.css">
+  <header class="joy-header">
+    <div style="font-weight:800">JoyArcade</div>
+    <nav class="joy-nav">
+      <button id="backToArcade" class="joy-btn">← Back</button>
+      <button id="tryAnother" class="joy-btn">🔄 Try Another</button>
+      <a href="../achievements.html" class="joy-btn">Achievements</a>
+      <a href="../shop.html" class="joy-btn">Shop</a>
+    </nav>
+  </header>
+  <div class="wrap">
+    <h1>Pen Fight</h1>
+
+    <div class="panel ui">
+      <div>
+        <div class="hint">Drag on your pen and release to flick. Keyboard: arrows to aim + Space/Enter to flick.</div>
+      </script>
+      <script src="../joyarcade.js"></script>
+        <div class="controls">
+          <label for="penSelect">Your Pen:</label>
+          <select id="penSelect">
+            <option value="redpen.png">Red</option>
+            <option value="bluepen.png">Blue</option>
+            <option value="greenpen.png">Green</option>
+            <option value="yellowpen.png">Yellow</option>
+            <option value="blackpen.png">Black</option>
+            <option value="pinkpen.png">Pink</option>
+            <option value="purplepen.png">Purple</option>
+          </select>
+
+          <label for="difficulty">AI Difficulty:</label>
+          <select id="difficulty">
+            <option value="easy">Easy</option>
+            <option value="medium" selected>Medium</option>
+            <option value="hard">Hard</option>
+            <option value="impossible">Impossible</option>
+          </select>
+
+          <label for="gameMode">Mode:</label>
+          <select id="gameMode">
+            <option value="vs_ai" selected>1 Player vs AI</option>
+            <option value="two_player">2 Player Local</option>
+          </select>
+
+          <label for="bgTheme">Background:</label>
+          <select id="bgTheme">
+            <option value="soft">Soft</option>
+            <option value="night">Night</option>
+            <option value="sunset">Sunset</option>
+          </select>
+
+          <label for="tableTheme">Table:</label>
+          <select id="tableTheme">
+            <option value="classic">Classic</option>
+            <option value="darkwood">Darkwood</option>
+            <option value="ice">Ice</option>
+          </select>
+
+          <img id="penPreview" src="redpen.png" alt="pen preview" style="height:28px;border-radius:4px;">
+        </div>
+      </div>
+      <div class="meta">
+        <div class="score" id="scoreTally">W: 0 | L: 0</div>
+        <button id="reset">Reset</button>
+        <button id="logout">Logout</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="msg" id="statusMsg"></div>
+      <canvas id="game" width="880" height="420" tabindex="0" aria-label="Pen Fight game canvas"></canvas>
+    </div>
+
+    <div class="panel">
+      <strong>Position Log (latest first)</strong>
+      <div class="log" id="positionLog" aria-live="polite"></div>
+    </div>
+
+    <div id="endScreen">
+      <h1 id="resultTitle">Result</h1>
+      <button id="playAgain">Play Again</button>
+    </div>
+
+    <div id="loginScreen">
+      <div class="card">
+        <h2 style="margin-top:0">Login</h2>
+        <p style="margin-top:0;color:#ddd">Simple local profile so your score and logs are saved on this device.</p>
+        <label for="username">Name</label>
+        <input id="username" maxlength="20" placeholder="Player name" autocomplete="nickname" />
+        <div style="height:10px"></div>
+        <button id="loginBtn">Enter Game</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+
+const STORAGE_KEY = 'penfight_users_v1';
+const CURRENT_USER_KEY = 'penfight_current_user';
+
+const BG_THEMES = {
+  soft: 'linear-gradient(#f7f7f9,#eef2f6)',
+  night: 'linear-gradient(#1f2230,#2d3147)',
+  sunset: 'linear-gradient(#ffd7b5,#ffb199)'
+};
+
+const TABLE_THEMES = {
+  classic: '#f2e9d5',
+  darkwood: '#7d5a47',
+  ice: '#d9edf8'
+};
+
+const PEN_STATS = {
+  'redpen.png': { power: 1.0 },
+  'bluepen.png': { power: 0.9 },
+  'greenpen.png': { power: 1.1 },
+  'yellowpen.png': { power: 0.8 },
+  'blackpen.png': { power: 1.0 },
+  'pinkpen.png': { power: 1.05 },
+  'purplepen.png': { power: 1.15 }
+};
+
+const AI_DIFFICULTY = {
+  easy: { power: 4.8, reaction: 720, variance: 1.8, lead: 0.14, arena: 42, edgeBonus: 0.8, pressureRangeX: 130, pressureRangeY: 90, maxBoost: 2.8 },
+  medium: { power: 7.2, reaction: 460, variance: 0.95, lead: 0.24, arena: 70, edgeBonus: 1.45, pressureRangeX: 145, pressureRangeY: 100, maxBoost: 3.8 },
+  hard: { power: 11.4, reaction: 200, variance: 0.42, lead: 0.38, arena: 112, edgeBonus: 2.4, pressureRangeX: 170, pressureRangeY: 120, maxBoost: 5.1 },
+  impossible: { power: 17.6, reaction: 62, variance: 0.11, lead: 0.62, arena: 182, edgeBonus: 4.1, pressureRangeX: 214, pressureRangeY: 148, maxBoost: 7.1 },
+  
+};
+
+const table = { x: 40, y: 30, w: canvas.width - 80, h: canvas.height - 60 };
+const PEN_RADIUS = 24;
+const FRICTION = 0.965;
+const POWER = 0.28;
+const STOP_SPEED = 0.16;
+const LOW_SPEED_BOUNCE = 2.0;
+const MAX_LOG_ENTRIES = 40;
+const PLAYER_MAX_DRAG = 170;
+const PLAYER_MAX_IMPULSE = 28;
+const AI_MAX_IMPULSE = PLAYER_MAX_IMPULSE;
+const AI_KNOCKBACK_RESIST = { easy: 0.95, medium: 0.82, hard: 0.64, impossible: 0.46 };
+const MAX_SPEED = 18;
+
+let difficulty = 'medium';
+let gameMode = 'vs_ai';
+let gameOver = false;
+let turn = 'player';
+let aiQueued = false;
+let moveCounts = { player: 0, opponent: 0 };
+let playerShotCount = 0;
+let playerShotPowerAvg = 0;
+let aiShotCount = 0;
+let dragging = false;
+let dragStart = { x: 0, y: 0 };
+let dragPos = { x: 0, y: 0 };
+let pens = [];
+let keyboardAim = { x: 55, y: 0 };
+let currentUser = null;
+// Round system
+let roundsToWin = 3;
+let currentRound = 1;
+let playerRounds = 0;
+let aiRounds = 0;
+
+const penSelect = document.getElementById('penSelect');
+const difficultySelect = document.getElementById('difficulty');
+const gameModeSelect = document.getElementById('gameMode');
+const bgThemeSelect = document.getElementById('bgTheme');
+const tableThemeSelect = document.getElementById('tableTheme');
+const statusMsg = document.getElementById('statusMsg');
+const penPreview = document.getElementById('penPreview');
+const positionLogEl = document.getElementById('positionLog');
+const scoreTallyEl = document.getElementById('scoreTally');
+const loginScreen = document.getElementById('loginScreen');
+
+const penImages = {};
+for (const f of Object.keys(PEN_STATS)) {
+  const img = new Image();
+  img.src = f;
+  penImages[f] = img;
+}
+
+// Header navigation wiring (Back / Try Another)
+(function(){
+  const back = document.getElementById('backToArcade');
+  const tryBtn = document.getElementById('tryAnother');
+  back && back.addEventListener('click', () => location.href = '../index.html');
+  const other = ['../reactiontest/index.html','../memoryflip/index.html','../OddEveOffline/index.html','../Chopsticks/index.html','../chosen9/index.html','../GTB V2.0/index.html'];
+  tryBtn && tryBtn.addEventListener('click', () => { location.href = other[Math.floor(Math.random()*other.length)]; });
+})();
+
+function safeName(raw) {
+  const cleaned = String(raw || '').trim().replace(/[^a-zA-Z0-9 _-]/g, '').slice(0, 20);
+  return cleaned || null;
+}
+
+function loadUsers() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+    return parsed && typeof parsed === 'object' ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+function saveUsers(users) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(users));
+}
+
+function getUserRecord() {
+  if (!currentUser) return null;
+  const users = loadUsers();
+  if (!users[currentUser]) {
+    users[currentUser] = {
+      wins: 0,
+      losses: 0,
+      selectedPen: 'redpen.png',
+      bgTheme: 'soft',
+      tableTheme: 'classic',
+      positionLogs: []
+    };
+    saveUsers(users);
+  }
+  return users[currentUser];
+}
+
+function persistUserRecord(updater) {
+  if (!currentUser) return;
+  const users = loadUsers();
+  if (!users[currentUser]) users[currentUser] = getUserRecord();
+  updater(users[currentUser]);
+  saveUsers(users);
+}
+
+function applyThemes() {
+  const bg = BG_THEMES[bgThemeSelect.value] || BG_THEMES.soft;
+  document.body.style.background = bg;
+}
+
+function refreshScore() {
+  const record = getUserRecord();
+  if (!record) {
+    scoreTallyEl.textContent = 'W: 0 | L: 0';
+    return;
+  }
+  scoreTallyEl.textContent = `W: ${record.wins} | L: ${record.losses}`;
+}
+
+function refreshPositionLog() {
+  const record = getUserRecord();
+  const logs = Array.isArray(record?.positionLogs) ? record.positionLogs : [];
+  if (!logs.length) {
+    positionLogEl.textContent = 'No saved positions yet.';
+    return;
+  }
+  positionLogEl.innerHTML = '';
+  for (const row of [...logs].reverse()) {
+    const line = document.createElement('div');
+    line.textContent = row;
+    positionLogEl.appendChild(line);
+  }
+}
+
+function logPosition(tag) {
+  const p = pens[0], a = pens[1];
+  if (!p || !a) return;
+  const row = `${new Date().toLocaleTimeString()} | ${tag} | P(${p.x.toFixed(1)},${p.y.toFixed(1)}) AI(${a.x.toFixed(1)},${a.y.toFixed(1)})`;
+  persistUserRecord(rec => {
+    const arr = Array.isArray(rec.positionLogs) ? rec.positionLogs : [];
+    arr.push(row);
+    rec.positionLogs = arr.slice(-MAX_LOG_ENTRIES);
+  });
+  refreshPositionLog();
+}
+
+function updateStatus() {
+  if (gameOver) return;
+  const aiText = isTwoPlayerMode() ? 'Player 2 turn' : 'AI is aiming...';
+  const turnText = turn === 'player' ? 'Player 1 turn' : turn === 'ai' ? aiText : 'Motion resolving...';
+  statusMsg.textContent = `${turnText} • Knock the opponent off the table.`;
+}
+
+function setTurn(newTurn) {
+  turn = newTurn;
+  updateStatus();
+}
+
+function saveMatch() {
+  try {
+    const snapshot = {
+      pens: pens.map(p => ({ x: p.x, y: p.y, vx: p.vx, vy: p.vy, player: p.player, r: p.r })),
+      turn,
+      moveCounts,
+      currentRound,
+      playerRounds,
+      aiRounds
+    };
+    localStorage.setItem('saved_match', JSON.stringify(snapshot));
+  } catch (e) {}
+}
+
+function createPens() {
+  return [
+    { x: table.x + 80, y: table.y + table.h / 2, vx: 0, vy: 0, r: PEN_RADIUS, player: true, img: penImages[penSelect.value], angle: 0, spin: 0 },
+    { x: table.x + table.w - 80, y: table.y + table.h / 2, vx: 0, vy: 0, r: PEN_RADIUS, player: false, img: penImages['purplepen.png'], angle: 0, spin: 0 }
+  ];
+}
+
+function bothPensStopped() {
+  return pens.every(p => Math.hypot(p.vx, p.vy) < STOP_SPEED);
+}
+
+function isTwoPlayerMode() {
+  return gameMode === 'two_player';
+}
+
+function activePenIndex() {
+  if (turn === 'player') return 0;
+  if (isTwoPlayerMode() && turn === 'ai') return 1;
+  return -1;
+}
+
+function getAdaptiveAiProfile() {
+  const base = AI_DIFFICULTY[difficulty] || AI_DIFFICULTY.impossible;
+  if (isTwoPlayerMode()) return base;
+
+  const tuneByMode = {
+    easy: { powerMul: 1.2, reactMul: 0.8, edgeMul: 1.15, boostMul: 1.15 },
+    medium: { powerMul: 1.35, reactMul: 0.72, edgeMul: 1.28, boostMul: 1.22 },
+    hard: { powerMul: 1.52, reactMul: 0.62, edgeMul: 1.42, boostMul: 1.32 },
+    impossible: { powerMul: 1.82, reactMul: 0.42, edgeMul: 1.72, boostMul: 1.58 }
+  };
+  const tune = tuneByMode[difficulty] || tuneByMode.impossible;
+
+  const score = getUserRecord();
+  const losses = Number(score?.losses || 0);
+  const wins = Number(score?.wins || 0);
+  const playerMomentum = Math.max(-2, Math.min(4, losses - wins));
+
+  const aggression = Math.max(0, Math.min(1.6, playerShotPowerAvg / 13));
+  const adaptationBoost = moveCounts.player < 1 ? 1 : (1 + aggression * 0.18 + playerMomentum * 0.04);
+
+  return {
+    ...base,
+    power: base.power * tune.powerMul * adaptationBoost,
+    reaction: Math.max(30, Math.floor(base.reaction * tune.reactMul * (1 - aggression * 0.08))),
+    edgeBonus: base.edgeBonus * tune.edgeMul * (1 + aggression * 0.12),
+    maxBoost: base.maxBoost * tune.boostMul * (1 + aggression * 0.1)
+  };
+}
+
+function getPenLabel(pen) {
+  if (pen.player) return 'P1';
+  return isTwoPlayerMode() ? 'P2' : 'AI';
+}
+
+function aiSafetyScore(aiPen, shotVx, shotVy) {
+  // Simulate short-horizon motion with current momentum + proposed shot impulse.
+  let x = aiPen.x;
+  let y = aiPen.y;
+  let vx = aiPen.vx + shotVx;
+  let vy = aiPen.vy + shotVy;
+
+  let worstGap = Infinity;
+  for (let i = 0; i < 16; i += 1) {
+    x += vx;
+    y += vy;
+    vx *= FRICTION;
+    vy *= FRICTION;
+
+    const leftGap = x - (table.x + aiPen.r);
+    const rightGap = (table.x + table.w - aiPen.r) - x;
+    const topGap = y - (table.y + aiPen.r);
+    const bottomGap = (table.y + table.h - aiPen.r) - y;
+    const minGap = Math.min(leftGap, rightGap, topGap, bottomGap);
+    worstGap = Math.min(worstGap, minGap);
+  }
+
+  // Positive is safer; negative means projected outside table at some point.
+  return worstGap;
+}
+
+function userEliminationPressure(x, y) {
+  const left = x - table.x;
+  const right = table.x + table.w - x;
+  const top = y - table.y;
+  const bottom = table.y + table.h - y;
+  const nearest = Math.min(left, right, top, bottom);
+  const maxNear = Math.min(table.w, table.h) * 0.5;
+  return Math.max(0, 1 - nearest / maxNear);
+}
+
+function reset() {
+  pens = createPens();
+  dragging = false;
+  gameOver = false;
+  setTurn('player');
+  aiQueued = false;
+  moveCounts = { player: 0, opponent: 0 };
+  playerShotCount = 0;
+  playerShotPowerAvg = 0;
+  aiShotCount = 0;
+  keyboardAim = { x: 55, y: 0 };
+  difficultySelect.disabled = isTwoPlayerMode();
+  document.getElementById('endScreen').style.display = 'none';
+  updateStatus();
+
+  const allMissing = Object.values(penImages).every(img => !img.complete || img.naturalWidth === 0);
+  if (allMissing) {
+    statusMsg.textContent = 'Note: pen image files are missing; using high-contrast fallback markers.';
+  }
+  logPosition('reset');
+}
+
+function showEndScreen(text) {
+  document.getElementById('resultTitle').textContent = text;
+  document.getElementById('endScreen').style.display = 'flex';
+}
+
+function worldToCanvas(evt) {
+  const rect = canvas.getBoundingClientRect();
+  const e = evt.touches ? evt.touches[0] : evt;
+  return {
+    x: (e.clientX - rect.left) * (canvas.width / rect.width),
+    y: (e.clientY - rect.top) * (canvas.height / rect.height)
+  };
+}
+
+function beginDrag(evt) {
+  const idx = activePenIndex();
+  if (gameOver || idx < 0 || !bothPensStopped()) return;
+  const p = worldToCanvas(evt);
+  dragStart = p;
+  dragPos = p;
+  const actor = pens[idx];
+  if (Math.hypot(p.x - actor.x, p.y - actor.y) <= actor.r + 8) dragging = true;
+}
+
+function moveDrag(evt) {
+  if (!dragging) return;
+  dragPos = worldToCanvas(evt);
+}
+
+function applyPlayerFlick(rawDx, rawDy) {
+  const idx = activePenIndex();
+  if (idx < 0) return;
+
+  const pen = pens[idx];
+  const isPlayerOne = idx === 0;
+  const stats = isPlayerOne ? PEN_STATS[penSelect.value] : PEN_STATS['purplepen.png'];
+  const dragDistance = Math.hypot(rawDx, rawDy) || 1;
+  const powerPercent = Math.min(1, dragDistance / PLAYER_MAX_DRAG);
+  statusMsg.textContent = `Power: ${Math.round(powerPercent * 100)}%`;
+  const dragScale = Math.min(1, PLAYER_MAX_DRAG / dragDistance);
+  const limitedDx = rawDx * dragScale;
+  const limitedDy = rawDy * dragScale;
+
+  const impulseX = limitedDx * POWER * stats.power;
+  const impulseY = limitedDy * POWER * stats.power;
+  const impulseMag = Math.hypot(impulseX, impulseY) || 1;
+  const impulseScale = Math.min(1, PLAYER_MAX_IMPULSE / impulseMag);
+
+  const appliedImpulseX = impulseX * impulseScale;
+  const appliedImpulseY = impulseY * impulseScale;
+  pen.vx += appliedImpulseX;
+  pen.vy += appliedImpulseY;
+  pen.spin = (Math.random() - 0.5) * 0.35;
+
+  if (isPlayerOne) {
+    moveCounts.player += 1;
+    const appliedMag = Math.hypot(appliedImpulseX, appliedImpulseY);
+    playerShotCount += 1;
+    playerShotPowerAvg += (appliedMag - playerShotPowerAvg) / playerShotCount;
+  }
+  else moveCounts.opponent += 1;
+
+  aiQueued = false;
+  setTurn('ai');
+}
+
+function endDrag(evt) {
+  if (!dragging) return;
+  dragging = false;
+  const up = worldToCanvas(evt.changedTouches ? { ...evt, touches: evt.changedTouches } : evt);
+  const dx = up.x - dragStart.x;
+  const dy = up.y - dragStart.y;
+  applyPlayerFlick(dx, dy);
+}
+
+function keyboardFlick() {
+  if (gameOver || activePenIndex() < 0 || !bothPensStopped()) return;
+  applyPlayerFlick(keyboardAim.x, keyboardAim.y);
+}
+
+function opponentMove() {
+  if (gameOver || turn !== 'ai') return;
+  if (!bothPensStopped()) return;
+  const aiPen = pens[1];
+  const target = pens[0];
+  const ai = getAdaptiveAiProfile();
+
+  aiShotCount += 1;
+
+  const projectedX = target.x + target.vx * (8 + ai.lead * 25);
+  const projectedY = target.y + target.vy * (8 + ai.lead * 25);
+
+  const left = projectedX - table.x;
+  const right = table.x + table.w - projectedX;
+  const top = projectedY - table.y;
+  const bottom = table.y + table.h - projectedY;
+  const nearest = Math.min(left, right, top, bottom);
+
+  let edgeTargetX = projectedX;
+  let edgeTargetY = projectedY;
+  const push = 70;
+  if (nearest === left) edgeTargetX -= push;
+  else if (nearest === right) edgeTargetX += push;
+  else if (nearest === top) edgeTargetY -= push;
+  else edgeTargetY += push;
+
+  let best = null;
+  let bestScore = -Infinity;
+  let safest = null;
+  let safestScore = -Infinity;
+
+  for (let i = 0; i < 18; i += 1) {
+    const offX = (Math.random() - 0.5) * ai.variance * ai.arena;
+    const offY = (Math.random() - 0.5) * ai.variance * ai.arena;
+
+    const dx = (edgeTargetX + offX) - aiPen.x;
+    const dy = (edgeTargetY + offY) - aiPen.y;
+    const dist = Math.hypot(dx, dy) || 1;
+
+    const edgePressure =
+      Math.max(0, (table.x + ai.pressureRangeX - target.x) / ai.pressureRangeX) +
+      Math.max(0, (target.x - (table.x + table.w - ai.pressureRangeX)) / ai.pressureRangeX) +
+      Math.max(0, (table.y + ai.pressureRangeY - target.y) / ai.pressureRangeY) +
+      Math.max(0, (target.y - (table.y + table.h - ai.pressureRangeY)) / ai.pressureRangeY);
+
+    const distanceBoost = Math.min(ai.maxBoost, dist / 120);
+    const finalPower = ai.power + distanceBoost + edgePressure * ai.edgeBonus;
+
+    const rawVx = (dx / dist) * finalPower;
+    const rawVy = (dy / dist) * finalPower;
+    const aiImpulseMag = Math.hypot(rawVx, rawVy) || 1;
+    const aiImpulseScale = Math.min(1, AI_MAX_IMPULSE / aiImpulseMag);
+    const shotVx = rawVx * aiImpulseScale;
+    const shotVy = rawVy * aiImpulseScale;
+
+    const safety = aiSafetyScore(aiPen, shotVx, shotVy);
+    const pressure = userEliminationPressure(projectedX, projectedY);
+    const attackScore = finalPower * (1 + pressure * 0.55) - dist * 0.008;
+
+    // Strongly prefer safe/self-preserving shots while still maximizing user elimination pressure.
+    const score = safety * 2.6 + attackScore;
+
+    if (score > bestScore) {
+      bestScore = score;
+      best = { shotVx, shotVy, safety };
+    }
+
+    const safeOnlyScore = safety * 5 + attackScore * 0.1;
+    if (safeOnlyScore > safestScore) {
+      safestScore = safeOnlyScore;
+      safest = { shotVx, shotVy, safety };
+    }
+  }
+
+  // Never take a suicidal line: if the best offensive shot is unsafe, switch to safest legal candidate.
+  if (best && best.safety < 10 && safest && safest.safety > best.safety) {
+    best = safest;
+  }
+
+  if (best && best.safety < 4) {
+    // Emergency anti-suicide brake + center drift.
+    aiPen.vx *= 0.35;
+    aiPen.vy *= 0.35;
+
+    const cx = table.x + table.w / 2;
+    const cy = table.y + table.h / 2;
+    const dx = cx - aiPen.x;
+    const dy = cy - aiPen.y;
+    const dist = Math.hypot(dx, dy) || 1;
+    const retreat = Math.min(6.5, AI_MAX_IMPULSE * 0.42);
+    aiPen.vx += (dx / dist) * retreat;
+    aiPen.vy += (dy / dist) * retreat;
+  } else if (best) {
+    // Small chance of human-like imperfection so "impossible" doesn't feel rigged
+    const aiReaction = Math.random();
+    if (aiReaction > 0.90) {
+      // introduce a small mistake/noise
+      const factor = 0.5 + Math.random() * 0.6; // 0.5..1.1
+      aiPen.vx += best.shotVx * factor;
+      aiPen.vy += best.shotVy * factor;
+      try{ statusMsg.textContent = 'AI made a small mistake'; }catch(e){}
+    } else {
+      aiPen.vx += best.shotVx;
+      aiPen.vy += best.shotVy;
+    }
+  }
+
+  aiPen.spin = (Math.random() - 0.5) * 0.35;
+  moveCounts.opponent += 1;
+  aiQueued = false;
+  setTurn('resolving');
+}
+
+function updatePhysics() {
+  for (const p of pens) {
+    p.x += p.vx;
+    p.y += p.vy;
+    p.vx *= FRICTION;
+    p.vy *= FRICTION;
+    const speed = Math.hypot(p.vx, p.vy);
+    if (speed > MAX_SPEED) {
+      const k = MAX_SPEED / speed;
+      p.vx *= k;
+      p.vy *= k;
+    }
+    if (Math.abs(p.vx) < 0.01) p.vx = 0;
+    if (Math.abs(p.vy) < 0.01) p.vy = 0;
+    p.angle += p.spin;
+    p.spin *= 0.98;
+  }
+}
+
+function checkCollisions() {
+  const a = pens[0], b = pens[1];
+  const dx = b.x - a.x;
+  const dy = b.y - a.y;
+  const dist = Math.hypot(dx, dy);
+  const min = a.r + b.r;
+  if (dist <= min && dist > 0) {
+    const nx = dx / dist, ny = dy / dist;
+    const overlap = min - dist;
+    a.x -= nx * overlap * 0.5;
+    a.y -= ny * overlap * 0.5;
+    b.x += nx * overlap * 0.5;
+    b.y += ny * overlap * 0.5;
+
+    const rvx = b.vx - a.vx;
+    const rvy = b.vy - a.vy;
+    const velAlongNormal = rvx * nx + rvy * ny;
+    if (velAlongNormal > 0) return;
+
+    const restitution = 0.86;
+    let impulse = -(1 + restitution) * velAlongNormal / 2;
+
+    if (!isTwoPlayerMode()) {
+      const playerDrivingIntoAi = ((a.vx - b.vx) * nx + (a.vy - b.vy) * ny) > 0;
+      if (playerDrivingIntoAi) {
+        const resist = AI_KNOCKBACK_RESIST[difficulty] ?? AI_KNOCKBACK_RESIST.impossible;
+        impulse *= resist;
+      }
+    }
+
+    const impulseX = impulse * nx;
+    const impulseY = impulse * ny;
+    // Hit feedback
+    try {
+      // Strong impact -> feel like a "perfect block" occasionally
+      const impact = Math.abs(velAlongNormal);
+      if (impact > 6) {
+        statusMsg.textContent = '🤖 Perfect Block!';
+      } else {
+        statusMsg.textContent = 'HIT!';
+      }
+      canvas.style.transform = 'scale(1.02)';
+      setTimeout(() => { canvas.style.transform = 'scale(1)'; }, 80);
+    } catch (e) {}
+
+    a.vx -= impulseX;
+    a.vy -= impulseY;
+    b.vx += impulseX;
+    b.vy += impulseY;
+  }
+}
+
+function registerResult(playerWon) {
+  persistUserRecord(rec => {
+    if (playerWon) rec.wins = (Number(rec.wins) || 0) + 1;
+    else rec.losses = (Number(rec.losses) || 0) + 1;
+  });
+  refreshScore();
+}
+
+function checkEdgesAndElimination() {
+  // Evaluate all pens first, then resolve outcomes to avoid ordering bias.
+  let playerFalls = false;
+  let aiFalls = false;
+
+  for (const p of pens) {
+    const speed = Math.hypot(p.vx, p.vy);
+    const touchingEdge = p.x - p.r < table.x || p.x + p.r > table.x + table.w || p.y - p.r < table.y || p.y + p.r > table.y + table.h;
+
+    if (touchingEdge && speed < LOW_SPEED_BOUNCE) {
+      if (p.x - p.r < table.x) { p.x = table.x + p.r; p.vx = Math.abs(p.vx) * 0.4; }
+      if (p.x + p.r > table.x + table.w) { p.x = table.x + table.w - p.r; p.vx = -Math.abs(p.vx) * 0.4; }
+      if (p.y - p.r < table.y) { p.y = table.y + p.r; p.vy = Math.abs(p.vy) * 0.4; }
+      if (p.y + p.r > table.y + table.h) { p.y = table.y + table.h - p.r; p.vy = -Math.abs(p.vy) * 0.4; }
+    }
+
+    const fullyOut = p.x + p.r < table.x || p.x - p.r > table.x + table.w || p.y + p.r < table.y || p.y - p.r > table.y + table.h;
+    if (fullyOut) {
+      if (p.player) playerFalls = true; else aiFalls = true;
+    }
+  }
+
+  if (playerFalls || aiFalls) {
+    // Both fell -> draw (fair resolution)
+    if (playerFalls && aiFalls) {
+      const message = '💥 Double Knockout! Draw!';
+      statusMsg.textContent = message;
+      logPosition('double_knockout');
+      // show end screen briefly
+      showEndScreen('Draw! Double Knockout!');
+      currentRound += 1;
+      setTimeout(() => reset(), 700);
+      return;
+    }
+
+    // Single fall: normal resolution
+    const playerWon = aiFalls && !playerFalls;
+    const message = isTwoPlayerMode()
+      ? (playerWon ? 'Player 2 Fell! Player 1 Wins!' : 'Player 1 Fell! Player 2 Wins!')
+      : (playerWon ? 'Opponent Fell! You Win!' : 'You Fell Off! You Lose!');
+    statusMsg.textContent = message;
+    registerResult(playerWon);
+    logPosition(playerWon ? 'win' : 'loss');
+
+    if (playerWon) playerRounds += 1; else aiRounds += 1;
+
+    if (playerRounds === roundsToWin || aiRounds === roundsToWin) {
+      gameOver = true;
+      showEndScreen(message);
+      return;
+    }
+
+    currentRound += 1;
+    setTimeout(() => reset(), 350);
+    return;
+  }
+}
+
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const tableFill = TABLE_THEMES[tableThemeSelect.value] || TABLE_THEMES.classic;
+  ctx.fillStyle = tableFill;
+  ctx.fillRect(table.x, table.y, table.w, table.h);
+  ctx.strokeStyle = 'rgba(30,30,30,0.55)';
+  ctx.lineWidth = 3;
+  ctx.strokeRect(table.x, table.y, table.w, table.h);
+
+  // Edge danger zones (visual hint)
+  try {
+    ctx.fillStyle = 'rgba(255,0,0,0.08)';
+    ctx.fillRect(table.x, table.y, table.w, 20);
+    ctx.fillRect(table.x, table.y + table.h - 20, table.w, 20);
+  } catch (e) {}
+
+  ctx.strokeStyle = 'rgba(0,0,0,0.08)';
+  ctx.lineWidth = 1;
+  for (let gx = table.x + 40; gx < table.x + table.w; gx += 40) {
+    ctx.beginPath();
+    ctx.moveTo(gx, table.y);
+    ctx.lineTo(gx, table.y + table.h);
+    ctx.stroke();
+  }
+
+  for (const p of pens) {
+    ctx.save();
+    ctx.translate(p.x, p.y);
+    ctx.rotate(p.angle);
+    if (p.img && p.img.complete && p.img.naturalWidth > 0) {
+      ctx.drawImage(p.img, -p.r, -p.r, p.r * 2, p.r * 2);
+    } else {
+      ctx.beginPath();
+      ctx.arc(0, 0, p.r + 1, 0, Math.PI * 2);
+      ctx.fillStyle = p.player ? '#d13b3b' : '#51398c';
+      ctx.fill();
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = '#fff';
+      ctx.stroke();
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 11px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(getPenLabel(p), 0, 1);
+    }
+    ctx.restore();
+  }
+
+  if (dragging) {
+    const a = pens[Math.max(0, activePenIndex())];
+    ctx.beginPath();
+    ctx.moveTo(a.x, a.y);
+    ctx.lineTo(dragPos.x, dragPos.y);
+    ctx.strokeStyle = '#333';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  }
+
+  if (activePenIndex() >= 0 && canvas === document.activeElement && bothPensStopped() && !dragging) {
+    const a = pens[Math.max(0, activePenIndex())];
+    ctx.beginPath();
+    ctx.moveTo(a.x, a.y);
+    ctx.lineTo(a.x + keyboardAim.x, a.y + keyboardAim.y);
+    ctx.strokeStyle = '#1e68ff';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  }
+}
+
+function step() {
+  // separated responsibilities for clarity
+  function updateGame() {
+    updatePhysics();
+    checkCollisions();
+    checkEdgesAndElimination();
+  }
+
+  function handleTurns() {
+    if (!gameOver && turn === 'ai' && bothPensStopped() && !aiQueued) {
+      if (isTwoPlayerMode()) {
+        setTurn('resolving');
+      } else {
+        aiQueued = true;
+        const delay = getAdaptiveAiProfile().reaction;
+        setTimeout(opponentMove, delay);
+      }
+    }
+
+    if (!gameOver && turn === 'resolving' && bothPensStopped()) {
+      setTurn(isTwoPlayerMode() ? 'ai' : 'player');
+      if (isTwoPlayerMode() && moveCounts.player === moveCounts.opponent) {
+        setTurn('player');
+      }
+      logPosition('turn_end');
+      saveMatch();
+    }
+  }
+
+  if (!gameOver && pens.length === 2) {
+    updateGame();
+    handleTurns();
+  }
+
+  draw();
+  requestAnimationFrame(step);
+}
+
+function applyUserSettings() {
+  const record = getUserRecord();
+  if (!record) return;
+  const savedPen = penImages[record.selectedPen] ? record.selectedPen : 'redpen.png';
+  penSelect.value = savedPen;
+  penPreview.src = savedPen;
+  bgThemeSelect.value = BG_THEMES[record.bgTheme] ? record.bgTheme : 'soft';
+  tableThemeSelect.value = TABLE_THEMES[record.tableTheme] ? record.tableTheme : 'classic';
+  applyThemes();
+  refreshScore();
+  refreshPositionLog();
+}
+
+function login(name) {
+  currentUser = name;
+  localStorage.setItem(CURRENT_USER_KEY, currentUser);
+  getUserRecord();
+  applyUserSettings();
+  loginScreen.style.display = 'none';
+  reset();
+}
+
+function logout() {
+  currentUser = null;
+  localStorage.removeItem(CURRENT_USER_KEY);
+  loginScreen.style.display = 'flex';
+  statusMsg.textContent = 'Please log in to play.';
+}
+
+penSelect.addEventListener('change', () => {
+  const chosen = penSelect.value;
+  if (pens[0]) pens[0].img = penImages[chosen];
+  penPreview.src = chosen;
+  persistUserRecord(rec => { rec.selectedPen = chosen; });
+});
+
+difficultySelect.addEventListener('change', () => {
+  difficulty = difficultySelect.value;
+});
+
+gameModeSelect.addEventListener('change', () => {
+  gameMode = gameModeSelect.value;
+  reset();
+});
+
+bgThemeSelect.addEventListener('change', () => {
+  applyThemes();
+  persistUserRecord(rec => { rec.bgTheme = bgThemeSelect.value; });
+});
+
+tableThemeSelect.addEventListener('change', () => {
+  persistUserRecord(rec => { rec.tableTheme = tableThemeSelect.value; });
+});
+
+canvas.addEventListener('pointerdown', beginDrag);
+canvas.addEventListener('pointermove', moveDrag);
+window.addEventListener('pointerup', endDrag);
+canvas.addEventListener('touchstart', beginDrag, { passive: true });
+canvas.addEventListener('touchmove', moveDrag, { passive: true });
+window.addEventListener('touchend', endDrag, { passive: true });
+
+canvas.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight') keyboardAim.x = Math.min(140, keyboardAim.x + 8);
+  if (e.key === 'ArrowLeft') keyboardAim.x = Math.max(-140, keyboardAim.x - 8);
+  if (e.key === 'ArrowDown') keyboardAim.y = Math.min(140, keyboardAim.y + 8);
+  if (e.key === 'ArrowUp') keyboardAim.y = Math.max(-140, keyboardAim.y - 8);
+  if (e.key === ' ' || e.key === 'Enter') {
+    e.preventDefault();
+    keyboardFlick();
+  }
+});
+
+document.getElementById('reset').addEventListener('click', reset);
+document.getElementById('playAgain').addEventListener('click', reset);
+document.getElementById('logout').addEventListener('click', logout);
+
+document.getElementById('loginBtn').addEventListener('click', () => {
+  const name = safeName(document.getElementById('username').value);
+  if (!name) {
+    alert('Please enter a valid name (letters/numbers/spaces only).');
+    return;
+  }
+  login(name);
+});
+
+document.getElementById('username').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('loginBtn').click();
+});
+
+const savedUser = safeName(localStorage.getItem(CURRENT_USER_KEY));
+if (savedUser) {
+  login(savedUser);
+} else {
+  loginScreen.style.display = 'flex';
+  statusMsg.textContent = 'Please log in to play.';
+  reset();
+}
+
+requestAnimationFrame(step);
+</script>
+</body>
+</html>
